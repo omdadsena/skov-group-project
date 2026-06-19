@@ -1,0 +1,43 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background: #0B0B0B;
+  color: #F8F3EA;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: #C9A45C; color: #0B0B0B; }
+
+.gold-text {
+  background: linear-gradient(120deg, #C9A45C 0%, #f4e0b3 50%, #C9A45C 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gold-border { border: 1px solid rgba(201,164,92,0.35); }
+.gold-divider { height:1px; background: linear-gradient(90deg, transparent, #C9A45C, transparent); }
+
+.btn-gold {
+  @apply inline-flex items-center justify-center gap-2 rounded-full bg-skov-gold px-6 py-3 font-medium text-skov-black transition hover:bg-[#d8b572] hover:shadow-gold;
+}
+.btn-outline-gold {
+  @apply inline-flex items-center justify-center gap-2 rounded-full border border-skov-gold/60 px-6 py-3 font-medium text-skov-cream transition hover:bg-skov-gold/10;
+}
+.card-dark {
+  @apply rounded-2xl border border-skov-gold/15 bg-[#151515] backdrop-blur-sm;
+}
+.input-dark {
+  @apply w-full rounded-xl border border-skov-gold/20 bg-black/40 px-4 py-3 text-skov-cream placeholder:text-skov-cream/40 outline-none focus:border-skov-gold focus:ring-2 focus:ring-skov-gold/30;
+}
+.label-gold {
+  @apply mb-2 block text-sm font-medium text-skov-cream/80;
+}
