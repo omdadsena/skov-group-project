@@ -39,7 +39,7 @@ export default function EstimatorPage() {
   const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-12">
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12 w-full max-w-full">
       <SectionHeading
         eyebrow="AI Cost Estimator"
         title="Know your build cost in 30 seconds"
@@ -47,7 +47,7 @@ export default function EstimatorPage() {
       />
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         {/* Form */}
-        <div className="card-dark p-7">
+        <div className="card-dark p-5 sm:p-7">
           <div className="mb-6 flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-skov-gold/10 text-skov-gold">
               <Calculator className="h-5 w-5" />
@@ -102,7 +102,7 @@ export default function EstimatorPage() {
         </div>
 
         {/* Result */}
-        <motion.div layout className="card-dark relative overflow-hidden p-7">
+        <motion.div layout className="card-dark relative overflow-hidden p-5 sm:p-7">
           <div className="absolute inset-0 bg-gold-radial opacity-70 pointer-events-none" />
           <div className="relative">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-skov-gold">

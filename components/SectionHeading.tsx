@@ -13,7 +13,7 @@ export default function SectionHeading({
   center?: boolean;
 }) {
   return (
-    <div className={`${center ? "text-center" : ""} max-w-3xl ${center ? "mx-auto" : ""}`}>
+    <div className={`w-full max-w-3xl ${center ? "text-center mx-auto" : ""}`}>
       {eyebrow && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -28,7 +28,7 @@ export default function SectionHeading({
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="font-display text-3xl md:text-5xl leading-tight"
+        className="font-display text-2xl sm:text-3xl md:text-5xl leading-tight"
       >
         {title}
       </motion.h2>

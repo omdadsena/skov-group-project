@@ -23,11 +23,11 @@ export default function Navbar() {
   }, []);
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all w-full max-w-full ${
         scrolled ? "bg-skov-black/80 backdrop-blur-xl border-b border-skov-gold/15" : "bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+      <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 md:px-5 md:py-4">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="grid h-9 w-9 place-items-center rounded-full border border-skov-gold/50 bg-skov-gold/10">
             <ShieldCheck className="h-5 w-5 text-skov-gold" />

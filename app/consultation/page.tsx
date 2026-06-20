@@ -11,7 +11,7 @@ export default function ConsultationPage() {
   const upd = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 md:px-8 md:py-12 w-full max-w-full">
       <SectionHeading
         eyebrow="Free 20-min consultation"
         title="Book a SKOV expert"
@@ -19,7 +19,7 @@ export default function ConsultationPage() {
       />
 
       <div className="mt-12 grid gap-8 md:grid-cols-[1fr_1.4fr]">
-        <div className="card-dark p-7">
+        <div className="card-dark p-5 sm:p-7">
           <h3 className="font-display text-xl">What you&apos;ll get</h3>
           <ul className="mt-5 space-y-4 text-sm text-skov-cream/80">
             {[
@@ -41,7 +41,7 @@ export default function ConsultationPage() {
 
         <form
           onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
-          className="card-dark p-7"
+          className="card-dark p-5 sm:p-7"
         >
           {submitted ? (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="py-10 text-center">

@@ -3,8 +3,8 @@ import { ShieldCheck, MapPin, Mail, Phone } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="mt-24 border-t border-skov-gold/15 bg-black/60">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4">
+    <footer className="mt-12 md:mt-24 border-t border-skov-gold/15 bg-black/60 w-full max-w-full">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 md:px-8 md:py-14 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
         <div>
           <div className="flex items-center gap-2">
             <div className="grid h-9 w-9 place-items-center rounded-full border border-skov-gold/50 bg-skov-gold/10">
@@ -45,7 +45,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="gold-divider opacity-40" />
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-6 text-xs text-skov-cream/50 md:flex-row">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-skov-cream/50 md:flex-row">
         <p>© {new Date().getFullYear()} SKOV Group. All rights reserved.</p>
         <p>Built with trust • Made in India</p>
       </div>

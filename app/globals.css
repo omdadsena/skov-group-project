@@ -12,6 +12,8 @@ html, body {
   background: #0B0B0B;
   color: #F8F3EA;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 ::selection { background: #C9A45C; color: #0B0B0B; }

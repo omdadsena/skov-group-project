@@ -19,7 +19,7 @@ export default function JoinPage() {
   const u = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-12">
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12 w-full max-w-full">
       <SectionHeading
         eyebrow="For contractors"
         title="Join SKOV as an early partner"
@@ -32,7 +32,7 @@ export default function JoinPage() {
             <motion.div key={p.title}
               initial={{ opacity: 0, x: -12 }} whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-              className="card-dark flex gap-4 p-5">
+              className="card-dark flex gap-4 p-4 sm:p-5">
               <div className="grid h-12 w-12 flex-none place-items-center rounded-xl bg-skov-gold/10 text-skov-gold">
                 <p.icon className="h-5 w-5" />
               </div>
@@ -44,7 +44,7 @@ export default function JoinPage() {
           ))}
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); setDone(true); }} className="card-dark p-7">
+        <form onSubmit={(e) => { e.preventDefault(); setDone(true); }} className="card-dark p-5 sm:p-7">
           {done ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-10 text-center">
               <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-skov-gold/15 text-skov-gold">

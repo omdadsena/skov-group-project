@@ -296,22 +296,32 @@ function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
   );
 }
 
-function UploadZone({ onUpload, label }: { onUpload: (name: string) => void; label: string }) {
+function UploadZone({ onUpload, label }: { onUpload: (base64: string, name: string) => void; label: string }) {
   const ref = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<string | null>(null);
-  const handle = (name: string) => { setFile(name); onUpload(name); };
+
+  const handleFile = (f: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setFile(f.name);
+      onUpload(base64, f.name);
+    };
+    reader.readAsDataURL(f);
+  };
+
   return (
     <div
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
-      onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handle(f.name); }}
+      onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
       onClick={() => ref.current?.click()}
       className={`cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition ${
         dragging ? "border-skov-gold bg-skov-gold/10" : "border-skov-gold/30 hover:border-skov-gold/60 hover:bg-white/[0.02]"
       }`}
     >
-      <input ref={ref} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handle(f.name); }} />
+      <input ref={ref} type="file" className="hidden" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
       {file ? (
         <div className="flex flex-col items-center gap-2">
           <CheckCircle2 className="h-8 w-8 text-green-400" />
@@ -335,6 +345,10 @@ function Sketch3DBot() {
   const [stage, setStage] = useState<"upload" | "scanning" | "done">("upload");
   const [style, setStyle] = useState("Modern");
   const [view, setView] = useState<"plan" | "elevation" | "3d">("plan");
+  const [image, setImage] = useState<string | null>(null);
+  const [apiResult, setApiResult] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const styles = ["Modern", "Traditional", "Vastu Classic", "Contemporary"];
   const rooms = [
     { label: "Living Room", w: 180, h: 140, x: 10, y: 10, color: "rgba(201,164,92,0.12)" },
@@ -346,10 +360,36 @@ function Sketch3DBot() {
     { label: "Toilet 2", w: 80, h: 70, x: 390, y: 160, color: "rgba(255,105,180,0.12)" },
     { label: "Balcony", w: 480, h: 60, x: 10, y: 270, color: "rgba(201,164,92,0.07)" },
   ];
-  const handleUpload = () => {
+
+  const handleUpload = async () => {
+    if (!image) {
+      setErrorMsg("Please upload a sketch image first.");
+      return;
+    }
     setStage("scanning");
-    setTimeout(() => setStage("done"), 2800);
+    setErrorMsg(null);
+    setApiResult(null);
+
+    try {
+      const res = await fetch("/api/generate-3d-concept", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image, style }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to analyze sketch.");
+      }
+
+      setApiResult(data);
+      setStage("done");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to generate design concept.");
+      setStage("upload");
+    }
   };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -361,13 +401,18 @@ function Sketch3DBot() {
       </div>
       {stage === "upload" && (
         <div className="space-y-4">
-          <UploadZone onUpload={() => {}} label="Drop your sketch, blueprint, or phone photo here" />
+          <UploadZone onUpload={(base64) => setImage(base64)} label="Drop your sketch, blueprint, or phone photo here" />
           <div className="flex flex-wrap gap-2">
             <span className="text-xs text-skov-cream/50">Style:</span>
             {styles.map((s) => (
               <button key={s} onClick={() => setStyle(s)} className={`rounded-full border px-3 py-1 text-xs transition ${style === s ? "border-skov-gold bg-skov-gold/15 text-skov-gold" : "border-skov-gold/20 text-skov-cream/60 hover:border-skov-gold/50"}`}>{s}</button>
             ))}
           </div>
+          {errorMsg && (
+            <div className="text-sm text-red-400 font-medium text-center bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+              {errorMsg}
+            </div>
+          )}
           <button onClick={handleUpload} className="btn-gold w-full">Analyze & Generate Concept <Sparkles className="h-4 w-4" /></button>
         </div>
       )}
@@ -377,7 +422,7 @@ function Sketch3DBot() {
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 rounded-full border-2 border-skov-gold/30 border-t-skov-gold" />
             <div className="absolute inset-2 flex items-center justify-center"><Camera className="h-6 w-6 text-skov-gold" /></div>
           </div>
-          <p className="text-skov-gold font-medium">Analysing your sketch...</p>
+          <p className="text-skov-gold font-medium">Analysing your sketch with Gemini Vision...</p>
           <div className="space-y-2 text-sm text-skov-cream/60">
             {["Detecting walls & openings", "Identifying room zones", "Checking circulation & ventilation", "Generating floor plan concept"].map((s, i) => (
               <motion.p key={s} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.6 }}
@@ -394,7 +439,7 @@ function Sketch3DBot() {
             {(["plan", "elevation", "3d"] as const).map((v) => (
               <button key={v} onClick={() => setView(v)} className={`rounded-full border px-4 py-1.5 text-sm capitalize transition ${view === v ? "border-skov-gold bg-skov-gold/15 text-skov-gold" : "border-skov-gold/20 text-skov-cream/60 hover:border-skov-gold/40"}`}>{v === "3d" ? "3D View" : v === "plan" ? "Floor Plan" : "Elevation"}</button>
             ))}
-            <button onClick={() => setStage("upload")} className="ml-auto flex items-center gap-1 rounded-full border border-skov-gold/20 px-3 py-1.5 text-xs text-skov-cream/60 hover:border-skov-gold/40"><RotateCcw className="h-3 w-3" /> New Upload</button>
+            <button onClick={() => { setStage("upload"); setImage(null); setApiResult(null); }} className="ml-auto flex items-center gap-1 rounded-full border border-skov-gold/20 px-3 py-1.5 text-xs text-skov-cream/60 hover:border-skov-gold/40"><RotateCcw className="h-3 w-3" /> New Upload</button>
           </div>
           <div className="card-dark overflow-hidden p-4">
             <p className="mb-3 text-xs text-skov-gold">✦ {style} Style — CONCEPT ONLY — AI-Generated {view === "plan" ? "Floor Plan" : view === "elevation" ? "Elevation" : "3D View"}</p>
@@ -442,34 +487,83 @@ function Sketch3DBot() {
               </svg>
             )}
           </div>
+
           {/* Analysis table */}
-          <div className="card-dark p-4 space-y-2">
-            <p className="text-sm font-medium text-skov-gold">Layout Analysis</p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead><tr className="border-b border-skov-gold/15"><th className="text-left py-1.5 text-skov-cream/60">Area</th><th className="text-left py-1.5 text-skov-cream/60">Observation</th><th className="text-left py-1.5 text-skov-cream/60">Improvement</th></tr></thead>
-                <tbody>
-                  {[["Entry", "East-facing main door", "Good for Vastu — ensure 3ft min width"],
-                    ["Living", "Connected to dining — open plan", "Consider partition for privacy"],
-                    ["Kitchen", "South-East placement", "Vastu compliant ✅ — add chimney duct"],
-                    ["Ventilation", "Cross-ventilation partial", "Add window opposite to kitchen exhaust"],
-                    ["Circulation", "Clear hallway flow", "Ensure 3ft corridor width minimum"]].map(([a, o, imp]) => (
-                    <tr key={a} className="border-b border-skov-gold/10"><td className="py-2 text-skov-cream/70">{a}</td><td className="py-2 text-skov-cream/60">{o}</td><td className="py-2 text-skov-gold/80">{imp}</td></tr>
-                  ))}
-                </tbody>
-              </table>
+          {apiResult?.layoutAnalysis && (
+            <div className="card-dark p-4 space-y-2">
+              <p className="text-sm font-medium text-skov-gold">Layout Analysis</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-skov-gold/15">
+                      <th className="text-left py-1.5 text-skov-cream/60">Area</th>
+                      <th className="text-left py-1.5 text-skov-cream/60">Observation</th>
+                      <th className="text-left py-1.5 text-skov-cream/60">Improvement</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {apiResult.layoutAnalysis.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-skov-gold/10">
+                        <td className="py-2 text-skov-cream/70 font-semibold">{item.area}</td>
+                        <td className="py-2 text-skov-cream/60">{item.observation}</td>
+                        <td className="py-2 text-skov-gold/80">{item.improvement}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Room & Wall Understanding */}
+          {apiResult?.roomWallUnderstanding && (
+            <div className="card-dark p-4 space-y-2">
+              <p className="text-sm font-medium text-skov-gold">Room & Wall Understanding</p>
+              <p className="text-xs text-skov-cream/80 leading-relaxed whitespace-pre-line">{apiResult.roomWallUnderstanding}</p>
+            </div>
+          )}
+
+          {/* Design Concept Notes */}
+          {apiResult?.designConceptNotes && (
+            <div className="card-dark p-4 space-y-2">
+              <p className="text-sm font-medium text-skov-gold">Design Concept Notes</p>
+              <p className="text-xs text-skov-cream/80 leading-relaxed whitespace-pre-line">{apiResult.designConceptNotes}</p>
+            </div>
+          )}
+
+          {/* Sizing & Cost cards */}
+          <div className="grid gap-3 sm:grid-cols-2 text-sm">
+            <div className="card-dark p-3">
+              <div className="text-xs text-skov-cream/50">Est. Built-up Area</div>
+              <div className="font-semibold text-skov-gold mt-1">{apiResult?.estimatedBuiltUpArea || "N/A"}</div>
+            </div>
+            <div className="card-dark p-3">
+              <div className="text-xs text-skov-cream/50">Rough Cost Range</div>
+              <div className="font-semibold text-skov-gold mt-1">{apiResult?.roughCostRange || "N/A"}</div>
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3 text-sm">
-            <div className="card-dark p-3"><div className="text-xs text-skov-cream/50">Est. Carpet Area</div><div className="font-semibold text-skov-gold mt-1">~1,350 sqft (ESTIMATE)</div></div>
-            <div className="card-dark p-3"><div className="text-xs text-skov-cream/50">Total Rooms</div><div className="font-semibold text-skov-gold mt-1">3 BHK + 2 Baths</div></div>
-            <div className="card-dark p-3"><div className="text-xs text-skov-cream/50">Vastu Compliance</div><div className="font-semibold text-green-400 mt-1">~92% ✓ (APPROXIMATE)</div></div>
-          </div>
+
+          {/* Concept Directions */}
+          {apiResult?.conceptDirections && (
+            <div className="card-dark p-4 space-y-4">
+              <p className="text-sm font-medium text-skov-gold">3 Unique 3D Concept Directions</p>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {apiResult.conceptDirections.map((dir: any, idx: number) => (
+                  <div key={idx} className="border border-skov-gold/15 bg-white/[0.01] rounded-xl p-3.5 space-y-2">
+                    <h4 className="text-sm font-bold text-skov-cream">{dir.name}</h4>
+                    <p className="text-[11px] text-skov-cream/60 leading-relaxed">{dir.desc}</p>
+                    <div className="text-[10px] text-skov-gold italic font-medium">{dir.vastuCompatibility}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="text-xs text-skov-cream/40 flex items-start gap-1.5">
             <AlertCircle className="h-3 w-3 flex-shrink-0 mt-0.5 text-skov-gold/60" />
-            <span>This is a concept direction only, not a final architectural or structural drawing. Structural safety cannot be certified from image analysis alone. Consult a qualified engineer for final drawings.</span>
+            <span>This is an AI-generated concept direction based on image analysis, not a final structural or architectural blueprint. Consult a qualified structural engineer for executing drawings.</span>
           </div>
-          <BotCTA label="Upload your sketch" icon={Upload} />
+          <BotCTA label="Upload another sketch" icon={Upload} />
         </motion.div>
       )}
     </div>
@@ -1326,14 +1420,28 @@ function QABot() {
   const bottomRef = useRef<HTMLDivElement>(null);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
-  const send = () => {
+  const send = async () => {
     if (!input.trim()) return;
     const u = input.trim();
-    setMsgs((m) => [...m, { role: "user", text: u, ts: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }]);
+    const ts = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    const currentMessages = [...msgs, { role: "user", text: u, ts } as Msg];
+    setMsgs(currentMessages);
     setInput("");
-    setTimeout(() => {
-      setMsgs((m) => [...m, { role: "bot", text: getQAReply(u), ts: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }]);
-    }, 700);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: currentMessages,
+          context: "You are a contractor Q&A assistant for the SKOV GROUP website. Answer questions about registering as a contractor, free listings, physical verification checkmarks, leads, and construction details (steel, sand, plastering, foundation, vastu, etc.) in a mix of Hindi and English (Hinglish) or English as requested. Keep replies helpful and straight to the point."
+        })
+      });
+      const data = await res.json();
+      setMsgs([...currentMessages, { role: "bot", text: data.text, ts }]);
+    } catch (e) {
+      setMsgs([...currentMessages, { role: "bot", text: "Something went wrong. Please check your network connection.", ts }]);
+    }
   };
 
   const QUICK = [
@@ -1406,9 +1514,9 @@ function CoinsPanel({ coins, onEarn, onRedeem }: {
   return (
     <div className="space-y-6">
       {/* Wallet Header */}
-      <div className="card-dark relative overflow-hidden p-6">
+      <div className="card-dark relative overflow-hidden p-5 sm:p-6">
         <div className="absolute inset-0 bg-gold-radial opacity-80 pointer-events-none" />
-        <div className="relative flex items-center justify-between">
+        <div className="relative flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div>
             <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-skov-gold/80">
               <Coins className="h-3.5 w-3.5" />SKOV Coins Balance
@@ -1417,17 +1525,17 @@ function CoinsPanel({ coins, onEarn, onRedeem }: {
               key={coins.balance}
               initial={{ scale: 1.2, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="mt-2 font-display text-5xl gold-text"
+              className="mt-2 font-display text-4xl sm:text-5xl gold-text"
             >
               {coins.balance.toLocaleString("en-IN")}
             </motion.div>
             <p className="mt-1 text-xs text-skov-cream/60">Earn coins for useful actions and unlock planning support</p>
           </div>
-          <div className="grid h-16 w-16 place-items-center rounded-2xl border border-skov-gold/30 bg-skov-gold/10">
-            <Award className="h-8 w-8 text-skov-gold" />
+          <div className="grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-2xl border border-skov-gold/30 bg-skov-gold/10">
+            <Award className="h-7 w-7 sm:h-8 sm:w-8 text-skov-gold" />
           </div>
         </div>
-        <div className="relative mt-4 flex gap-2">
+        <div className="relative mt-4 flex flex-wrap gap-2">
           {[["earn", "Earn Coins"], ["redeem", "Redeem"], ["history", "History"]].map(([id, label]) => (
             <button key={id} onClick={() => setTab(id as typeof tab)} className={`rounded-full border px-4 py-1.5 text-xs transition ${tab === id ? "border-skov-gold bg-skov-gold/20 text-skov-gold" : "border-skov-gold/25 text-skov-cream/60 hover:border-skov-gold/50"}`}>{label}</button>
           ))}
@@ -1644,17 +1752,17 @@ export default function AiBotHubPage() {
   const dailyBots = BOTS.filter((b) => b.category === "daily");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 md:py-8">
       {/* Page Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-2 inline-flex items-center gap-2 rounded-full border border-skov-gold/40 bg-skov-gold/5 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-skov-gold">
             <Bot className="h-3 w-3" />AI Bot Suite • 10 Specialist Tools
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="font-display text-4xl md:text-5xl">
+          <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="font-display text-2xl sm:text-4xl md:text-5xl">
             SKOV <span className="gold-text">AI Assistant Hub</span>
           </motion.h1>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mt-2 text-skov-cream/60">
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mt-2 text-skov-cream/60 text-sm">
             Free construction & real estate AI tools • Chhattisgarh priority • Honest estimates
           </motion.p>
         </div>
@@ -1690,54 +1798,62 @@ export default function AiBotHubPage() {
       </AnimatePresence>
 
       {/* Main Layout */}
-      <div className="flex gap-6">
-        {/* Sidebar */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar (Bot Suite Selector) */}
         <motion.div
           initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}
-          className={`flex-shrink-0 transition-all ${sidebarOpen ? "w-64" : "w-14"}`}
+          className={`w-full lg:flex-shrink-0 transition-all ${sidebarOpen ? "lg:w-64" : "lg:w-14"}`}
         >
-          <div className="card-dark sticky top-24 overflow-hidden">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="flex w-full items-center justify-between border-b border-skov-gold/15 px-4 py-3 text-xs uppercase tracking-widest text-skov-gold/80 hover:text-skov-gold transition">
+          <div className="card-dark lg:sticky lg:top-24 overflow-hidden">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden lg:flex w-full items-center justify-between border-b border-skov-gold/15 px-4 py-3 text-xs uppercase tracking-widest text-skov-gold/80 hover:text-skov-gold transition">
               {sidebarOpen && <span>Bot Suite</span>}
               <ChevronRight className={`h-4 w-4 transition ${sidebarOpen ? "rotate-180" : ""}`} />
             </button>
-            <div className="py-2">
-              {sidebarOpen && <p className="px-4 py-1 text-[10px] uppercase tracking-widest text-skov-cream/40">Core Conversion Bots</p>}
-              {coreBots.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => setActiveBot(b.id)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition ${activeBot === b.id ? "bg-skov-gold/10 border-r-2 border-skov-gold" : "hover:bg-white/[0.03]"}`}
-                >
-                  <div className={`grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg ${activeBot === b.id ? "bg-skov-gold/20 text-skov-gold" : "bg-white/5 text-skov-cream/60"}`}>
-                    <b.icon className="h-4 w-4" />
-                  </div>
-                  {sidebarOpen && (
-                    <div className="min-w-0 flex-1">
-                      <div className={`truncate text-sm ${activeBot === b.id ? "text-skov-cream font-medium" : "text-skov-cream/70"}`}>{b.label}</div>
+            <div className="p-3 lg:p-0 lg:py-2">
+              <p className="px-3 lg:px-4 py-1 text-[10px] uppercase tracking-widest text-skov-cream/40">Core Conversion Bots</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-1.5 lg:gap-0 mt-1 lg:mt-0 mb-4 lg:mb-0">
+                {coreBots.map((b) => (
+                  <button
+                    key={b.id}
+                    onClick={() => setActiveBot(b.id)}
+                    className={`flex w-full items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 text-left transition rounded-xl lg:rounded-none ${
+                      activeBot === b.id
+                        ? "bg-skov-gold/10 border-l-2 lg:border-l-0 lg:border-r-2 border-skov-gold text-skov-cream font-medium"
+                        : "hover:bg-white/[0.03] text-skov-cream/70"
+                    }`}
+                  >
+                    <div className={`grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg ${activeBot === b.id ? "bg-skov-gold/20 text-skov-gold" : "bg-white/5 text-skov-cream/60"}`}>
+                      <b.icon className="h-4 w-4" />
+                    </div>
+                    <div className={`min-w-0 flex-1 ${sidebarOpen ? "" : "lg:hidden"}`}>
+                      <div className="truncate text-sm font-medium">{b.label}</div>
                       <div className={`text-[10px] ${b.tagColor}`}>{b.tag}</div>
                     </div>
-                  )}
-                </button>
-              ))}
-              {sidebarOpen && <p className="mt-2 px-4 py-1 text-[10px] uppercase tracking-widest text-skov-cream/40">Daily Planning Tools</p>}
-              {dailyBots.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => setActiveBot(b.id)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition ${activeBot === b.id ? "bg-skov-gold/10 border-r-2 border-skov-gold" : "hover:bg-white/[0.03]"}`}
-                >
-                  <div className={`grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg ${activeBot === b.id ? "bg-skov-gold/20 text-skov-gold" : "bg-white/5 text-skov-cream/60"}`}>
-                    <b.icon className="h-4 w-4" />
-                  </div>
-                  {sidebarOpen && (
-                    <div className="min-w-0 flex-1">
-                      <div className={`truncate text-sm ${activeBot === b.id ? "text-skov-cream font-medium" : "text-skov-cream/70"}`}>{b.label}</div>
+                  </button>
+                ))}
+              </div>
+              <p className="px-3 lg:px-4 py-1 text-[10px] uppercase tracking-widest text-skov-cream/40">Daily Planning Tools</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-1.5 lg:gap-0 mt-1 lg:mt-0">
+                {dailyBots.map((b) => (
+                  <button
+                    key={b.id}
+                    onClick={() => setActiveBot(b.id)}
+                    className={`flex w-full items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 text-left transition rounded-xl lg:rounded-none ${
+                      activeBot === b.id
+                        ? "bg-skov-gold/10 border-l-2 lg:border-l-0 lg:border-r-2 border-skov-gold text-skov-cream font-medium"
+                        : "hover:bg-white/[0.03] text-skov-cream/70"
+                    }`}
+                  >
+                    <div className={`grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg ${activeBot === b.id ? "bg-skov-gold/20 text-skov-gold" : "bg-white/5 text-skov-cream/60"}`}>
+                      <b.icon className="h-4 w-4" />
+                    </div>
+                    <div className={`min-w-0 flex-1 ${sidebarOpen ? "" : "lg:hidden"}`}>
+                      <div className="truncate text-sm font-medium">{b.label}</div>
                       <div className={`text-[10px] ${b.tagColor}`}>{b.tag}</div>
                     </div>
-                  )}
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </motion.div>
@@ -1745,7 +1861,7 @@ export default function AiBotHubPage() {
         {/* Main Panel */}
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="min-w-0 flex-1"
+          className="min-w-0 w-full lg:flex-1"
         >
           {/* Active Bot Header */}
           <div className="mb-5 flex items-center gap-3">
@@ -1763,7 +1879,7 @@ export default function AiBotHubPage() {
             </div>
           </div>
 
-          <div className="card-dark p-6">
+          <div className="card-dark p-5 sm:p-6">
             <AnimatePresence mode="wait">
               <motion.div key={activeBot} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
                 {activeBot === "sketch3d" && <Sketch3DBot />}

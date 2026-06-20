@@ -12,7 +12,7 @@ export default function WhatsAppButton() {
       animate={{ scale: 1 }}
       transition={{ delay: 0.6, type: "spring" }}
       whileHover={{ scale: 1.08 }}
-      className="fixed bottom-6 left-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_10px_30px_-5px_rgba(37,211,102,0.55)]"
+      className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-40 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_10px_30px_-5px_rgba(37,211,102,0.55)]"
       aria-label="WhatsApp"
     >
       <MessageCircle className="h-6 w-6" />

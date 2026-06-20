@@ -27,7 +27,7 @@ export default function ContractorsPage() {
   }, [city, q, sort]);
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-12">
+    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12 w-full max-w-full">
       <SectionHeading
         eyebrow="Launching Soon"
         title="Contractor network in progress"
@@ -35,7 +35,7 @@ export default function ContractorsPage() {
       />
 
       {/* Filters */}
-      <div className="card-dark mt-10 grid gap-4 p-5 md:grid-cols-[1fr_auto_auto]">
+      <div className="card-dark mt-8 md:mt-10 grid gap-4 p-4 sm:p-5 md:grid-cols-[1fr_auto_auto]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-skov-cream/40" />
           <input
@@ -71,7 +71,7 @@ export default function ContractorsPage() {
             key={c.id}
             initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} transition={{ delay: i * 0.04 }}
-            className="card-dark group flex flex-col p-6 hover:border-skov-gold/40 hover:shadow-gold transition"
+            className="card-dark group flex flex-col p-5 sm:p-6 hover:border-skov-gold/40 hover:shadow-gold transition"
           >
             <div className="flex items-start justify-between">
               <div>
