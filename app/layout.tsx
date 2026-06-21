@@ -6,7 +6,7 @@ import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import ChatbotButton from "@/components/ChatbotButton";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://prishuxb-2245s-projects.vercel.app"),
+  metadataBase: new URL("https://www.skovgroup.com"),
   title: "SKOV GROUP — Verified Contractors & Construction Services in Chhattisgarh",
   description:
     "Find verified contractors in Raipur, Bilaspur, Durg. Free AI cost estimator, 3D home design, construction consultation. Trusted PropTech platform in Chhattisgarh.",
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               "@type": "LocalBusiness",
               name: "SKOV GROUP",
               description: "Verified contractors & construction services in Chhattisgarh",
-              url: "https://prishuxb-2245s-projects.vercel.app",
+              url: "https://www.skovgroup.com",
               telephone: "+919131800113",
               address: {
                 "@type": "PostalAddress",

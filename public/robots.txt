@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://prishuxb-2245s-projects.vercel.app/sitemap.xml
-Host: https://prishuxb-2245s-projects.vercel.app
+Sitemap: https://www.skovgroup.com/sitemap.xml
+Host: https://www.skovgroup.com
