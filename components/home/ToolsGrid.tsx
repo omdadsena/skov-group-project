@@ -8,10 +8,10 @@ import { Tool } from "../../Types";
 const toolsData: Tool[] = [
   {
     id: "contractors",
-    title: "Verified Contractors",
-    desc: "Browse local contractors vetted through documents, previous project checks, and site safety audits.",
+    title: "Lead Qualification Bot",
+    desc: "Turn a project enquiry into a clear scope, feasibility check, and practical next steps.",
     icon: Users,
-    href: "/contractors",
+    href: "/ai-bots",
     highlight: true,
   },
   {
@@ -23,31 +23,31 @@ const toolsData: Tool[] = [
   },
   {
     id: "design3d",
-    title: "3D Home Design Assist",
-    desc: "Submit your hand-drawn sketch or floor plan draft to generate premium 3D design iterations.",
+    title: "Sketch to 3D Home Bot",
+    desc: "Upload a sketch, review the layout, and receive a design-concept workflow.",
     icon: Sparkles,
     href: "/ai-bots",
   },
   {
     id: "consultation",
-    title: "Project Consultation",
-    desc: "Schedule a free 20-min callback with our senior civil engineer to analyze blueprints and budgets.",
+    title: "House Plan Assistant",
+    desc: "Get room sizing, circulation, ventilation, and layout suggestions for your plot.",
     icon: MessageSquare,
-    href: "/consultation",
+    href: "/ai-bots",
   },
   {
     id: "renovation",
-    title: "Interiors & Renovation",
-    desc: "Access specialized modular kitchen, paint selection, tile laying, and structural extension guides.",
+    title: "Renovation Advisor",
+    desc: "Prioritize repairs and upgrades against your room, budget, and timeline.",
     icon: Palette,
     href: "/ai-bots",
   },
   {
     id: "gallery",
-    title: "Projects Gallery",
-    desc: "Browse a local gallery of real-estate properties, construction blueprints, and elevations.",
+    title: "Material Budget Bot",
+    desc: "Build an indicative cement, steel, brick, tile, paint, and labour budget.",
     icon: Image,
-    href: "/contractors#projects",
+    href: "/ai-bots",
   },
 ];
 
@@ -58,10 +58,10 @@ export default function ToolsGrid() {
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="mb-3 inline-block rounded-full border border-[#d4af37]/30 bg-[#d4af37]/5 px-4 py-1 text-xs uppercase tracking-widest text-[#d4af37] font-semibold">
-            Intelligence Suite
+            AI Tools
           </div>
           <h2 className="font-display text-3xl md:text-5xl font-semibold text-[#f5f5f0] leading-tight">
-            Tools That Protect Every Rupee You Invest
+            Six practical tools for smarter construction decisions
           </h2>
           <p className="mt-4 text-[#f5f5f0]/65 font-light text-base sm:text-lg">
             From initial cost layouts to contractor alignment — built so families and NRIs can build home projects without stress.

@@ -24,7 +24,7 @@ export default function Footer() {
             <li><Link href="/contractors" className="hover:text-skov-gold">Contractors</Link></li>
             <li><Link href="/ai-cost-estimator" className="hover:text-skov-gold">AI Cost Estimator</Link></li>
             <li><Link href="/consultation" className="hover:text-skov-gold">Consultation</Link></li>
-            <li><Link href="/join-as-contractor" className="hover:text-skov-gold">Join as Contractor</Link></li>
+            <li><Link href="/join" className="hover:text-skov-gold">Join as Contractor</Link></li>
           </ul>
         </div>
         <div>

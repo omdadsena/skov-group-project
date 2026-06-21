@@ -11,17 +11,17 @@ const steps = [
   },
   {
     title: "2. Rigorous Verification Check",
-    desc: "SKOV audits past projects, conducts physical site visits, and checks reference clients directly.",
+    desc: "The planned review covers past work, physical site visits, and direct reference checks.",
     icon: ShieldAlert,
   },
   {
     title: "3. Project Delivery Training",
-    desc: "Selected partners train on cost estimation accuracy and client contract alignment.",
+    desc: "Selected partners will align on estimation, documentation, and client communication standards.",
     icon: Award,
   },
   {
     title: "4. Featured Directory Listing",
-    desc: "Only contractors who pass our evaluation get listed as verified inside our system.",
+    desc: "Contractors will be listed as verified only after completing the review process.",
     icon: UserCheck,
   },
 ];
@@ -49,7 +49,7 @@ export default function VerifiedContractors() {
                 Our Verified Contractor Process
               </h2>
               <p className="mt-4 text-[#f5f5f0]/65 font-light text-sm sm:text-base leading-relaxed">
-                Most directories list anyone who pays. SKOV uses a verification process covering business docs, site checks, and reference interviews.
+                SKOV is building a verification process covering business documents, site checks, and reference interviews.
               </p>
             </div>
 
@@ -86,7 +86,7 @@ export default function VerifiedContractors() {
                 SKOV Vetting Checklist
               </h3>
               <p className="text-sm text-[#f5f5f0]/60 font-light leading-relaxed">
-                Before any local Mason, Contractor, or Firm obtains our badge, we verify:
+                The verification framework is designed to review:
               </p>
               
               <ul className="space-y-4">

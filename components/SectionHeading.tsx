@@ -24,14 +24,14 @@ export default function SectionHeading({
           {eyebrow}
         </motion.div>
       )}
-      <motion.h2
+      <motion.h1
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         className="font-display text-2xl sm:text-3xl md:text-5xl leading-tight"
       >
         {title}
-      </motion.h2>
+      </motion.h1>
       {subtitle && (
         <motion.p
           initial={{ opacity: 0 }}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0a0a0a"/>
+  <circle cx="1000" cy="90" r="360" fill="#d4af37" opacity=".08"/>
+  <text x="90" y="250" fill="#d4af37" font-family="Georgia,serif" font-size="74">SKOV GROUP</text>
+  <text x="90" y="335" fill="#f5f5f0" font-family="Arial,sans-serif" font-size="42">Contractors &amp; Construction Services</text>
+  <text x="90" y="405" fill="#f5f5f0" opacity=".7" font-family="Arial,sans-serif" font-size="30">Chhattisgarh</text>
+</svg>

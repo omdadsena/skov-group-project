@@ -38,7 +38,7 @@ export default function ContractorCTA() {
               </p>
               <div className="pt-2">
                 <Link
-                  href="/join-as-contractor"
+                  href="/join"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#d4af37] px-8 py-3.5 text-sm font-bold text-[#0a0a0a] shadow-[0_8px_25px_rgba(212,175,55,0.25)] hover:bg-[#c5a043] transition duration-300"
                 >
                   Join as Partner <ArrowRight className="h-4 w-4" />

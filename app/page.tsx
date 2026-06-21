@@ -2,6 +2,8 @@
 
 import Hero from "@/components/home/Hero";
 import TrustStrip from "@/components/home/TrustStrip";
+import Services from "@/components/home/Services";
+import ContractorDirectory from "@/components/home/ContractorDirectory";
 import ToolsGrid from "@/components/home/ToolsGrid";
 import HowItWorks from "@/components/home/HowItWorks";
 import VerifiedContractors from "@/components/home/VerifiedContractors";
@@ -23,7 +25,10 @@ export default function Home() {
       {/* 2. Truststrip */}
       <TrustStrip />
 
-      {/* 3. SKOV Tools Suite */}
+      <Services />
+      <ContractorDirectory />
+
+      {/* SKOV Tools Suite */}
       <ToolsGrid />
 
       {/* 4. How It Works */}

@@ -164,7 +164,7 @@ export default function AICostEstimator() {
               </div>
 
               <div className="text-[10px] text-[#f5f5f0]/45 italic font-light leading-normal pt-2 border-t border-neutral-900">
-                * The values above represent localized pilot database indices. Project costs may vary depending on design drafts and soil conditions.
+                * Values are indicative planning ranges. Project costs vary with design, soil conditions, materials, and live quotations.
               </div>
             </div>
           </motion.div>

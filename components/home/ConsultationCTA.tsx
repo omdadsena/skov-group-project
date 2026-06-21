@@ -17,8 +17,8 @@ export default function ConsultationCTA() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone) {
-      setErrorMsg("Name and phone number are required.");
+    if (!name || !/^[6-9]\d{9}$/.test(phone)) {
+      setErrorMsg("Enter your name and a valid 10-digit Indian phone number.");
       setSubmitStatus("error");
       return;
     }
@@ -28,21 +28,21 @@ export default function ConsultationCTA() {
     setSubmitStatus("idle");
 
     try {
-      const { error } = await supabase.from("consultations").insert([
+      const { error } = await supabase.from("leads").insert([
         {
           name,
           phone,
+          email: null,
+          service_type: "Construction consultation",
           city,
           message: message || "Requested free call from Home Page",
-          created_at: new Date().toISOString(),
         },
       ]);
 
       if (error) {
-        // Fallback for demo/missing table: log the error and mock success for smooth UX
         console.warn("Supabase insert error:", error.message);
-        // Let's show success anyway but console warn so the user doesn't hit a wall
-        setSubmitStatus("success");
+        setErrorMsg("We could not save your request. Please try again or contact us on WhatsApp.");
+        setSubmitStatus("error");
       } else {
         setSubmitStatus("success");
         setName("");
@@ -51,8 +51,8 @@ export default function ConsultationCTA() {
       }
     } catch (err: any) {
       console.error("Form submit error:", err);
-      // Fail gracefully: show success indicating the request has been received locally
-      setSubmitStatus("success");
+      setErrorMsg("We could not save your request. Please try again or contact us on WhatsApp.");
+      setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
     }
@@ -113,13 +113,13 @@ export default function ConsultationCTA() {
                   Callback Requested!
                 </h3>
                 <p className="text-sm text-[#f5f5f0]/65 max-w-sm mx-auto font-light leading-relaxed">
-                  Our civil engineer will contact you on WhatsApp within 30 minutes. Thank you for trusting SKOV GROUP.
+                  Your request was saved. Our team will contact you using the details provided.
                 </p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <h3 className="font-display text-lg font-bold text-[#f5f5f0] mb-4">
-                  Request Instant Callback
+                  Request a Consultation
                 </h3>
 
                 {/* Name */}

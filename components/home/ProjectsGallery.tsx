@@ -42,13 +42,13 @@ export default function ProjectsGallery() {
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="mb-3 inline-block rounded-full border border-[#d4af37]/30 bg-[#d4af37]/5 px-4 py-1 text-xs uppercase tracking-widest text-[#d4af37] font-semibold">
-            Finished Works
+            Design Concepts
           </div>
           <h2 className="font-display text-3xl md:text-5xl font-semibold text-[#f5f5f0] leading-tight">
-            Projects Gallery Preview
+            Concept Gallery Preview
           </h2>
           <p className="mt-4 text-[#f5f5f0]/65 font-light text-base sm:text-lg">
-            A curated index of local custom home developments executing under SKOV project parameters.
+            Illustrative project directions for exploring styles, locations, and construction goals.
           </p>
         </div>
 

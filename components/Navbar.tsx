@@ -10,7 +10,7 @@ const links = [
   { href: "/contractors", label: "Contractors" },
   { href: "/ai-cost-estimator", label: "AI Estimator" },
   { href: "/consultation", label: "Consult" },
-  { href: "/join-as-contractor", label: "Join Us" },
+  { href: "/join", label: "Join Us" },
 ];
 
 export default function Navbar() {

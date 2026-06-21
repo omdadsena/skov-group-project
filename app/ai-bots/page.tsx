@@ -781,12 +781,36 @@ function ContractorBot() {
   const [budget, setBudget] = useState("");
   const [timeline, setTimeline] = useState("");
   const [done, setDone] = useState(false);
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const projTypes = ["New Home Build", "Renovation", "Commercial", "Interior Fit-out", "Extension / Addition"];
   const budgets = ["Under ₹20L", "₹20L–₹50L", "₹50L–₹1Cr", "₹1Cr+"];
   const timelines = ["Within 1 month", "1–3 months", "3–6 months", "6+ months"];
 
-  const search = () => { setDone(true); };
+  const search = async () => {
+    setDone(true);
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await fetch("/api/bot-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          botType: "contractor_finder",
+          message: `I need a contractor in ${city} for a ${projType} project. Budget: ${budget}. Timeline: ${timeline}. Please give me personalized advice on finding the right contractor, what to check, typical rates for ${city}, red flags, and negotiation tips.`,
+          metadata: { city, projType, budget, timeline },
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setAiAdvice(data.text);
+    } catch (err: any) {
+      setAiError(err.message || "Could not get AI advice. Showing general guidance below.");
+    }
+    setAiLoading(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -844,10 +868,35 @@ function ContractorBot() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
           <div className="flex items-center justify-between">
             <p className="text-sm text-skov-cream/70">Contractor guidance for {city} • {projType} • {budget}</p>
-            <button onClick={() => { setStep(0); setDone(false); setCity(""); setProjType(""); setBudget(""); setTimeline(""); }} className="text-xs text-skov-gold hover:underline">Start Over</button>
+            <button onClick={() => { setStep(0); setDone(false); setCity(""); setProjType(""); setBudget(""); setTimeline(""); setAiAdvice(null); setAiError(null); }} className="text-xs text-skov-gold hover:underline">Start Over</button>
           </div>
 
-          {/* Contractor type comparison table */}
+          {/* AI-Generated Personalized Advice */}
+          {aiLoading && (
+            <div className="card-dark p-6 flex items-center gap-4">
+              <div className="relative h-10 w-10 flex-shrink-0">
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="absolute inset-0 rounded-full border-2 border-skov-gold/30 border-t-skov-gold" />
+                <Users className="absolute inset-0 m-auto h-4 w-4 text-skov-gold" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-skov-gold font-medium">Analyzing your requirements with AI...</p>
+                <p className="text-xs text-skov-cream/50">Generating personalized contractor guidance for {city}</p>
+              </div>
+            </div>
+          )}
+          {aiAdvice && (
+            <div className="card-dark p-5 space-y-2">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-skov-gold" />
+                <p className="text-sm font-medium text-skov-gold">AI-Powered Contractor Guidance</p>
+              </div>
+              <div className="text-sm text-skov-cream/85 leading-relaxed whitespace-pre-line">{aiAdvice}</div>
+            </div>
+          )}
+          {aiError && (
+            <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl p-3">{aiError}</div>
+          )}
+
           <div className="card-dark p-5 space-y-3">
             <p className="text-sm font-medium text-skov-gold">Contractor Type Comparison</p>
             <div className="overflow-x-auto">
@@ -905,7 +954,29 @@ function RenovationBot() {
   const [room, setRoom] = useState<keyof typeof RENOVATION_IDEAS | "">("");
   const [uploaded, setUploaded] = useState(false);
   const [cityInput, setCityInput] = useState("Raipur");
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const rooms = Object.keys(RENOVATION_IDEAS) as (keyof typeof RENOVATION_IDEAS)[];
+
+  const handleRoomSelect = async (r: keyof typeof RENOVATION_IDEAS) => {
+    setRoom(r);
+    setAiLoading(true);
+    setAiAdvice(null);
+    try {
+      const res = await fetch("/api/bot-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          botType: "renovation_advisor",
+          message: `I want to renovate my ${r} in ${cityInput}. I have uploaded a photo. Please analyze and suggest specific renovation steps, materials, brands available in India, cost estimates per item, priority order, and timeline. Consider local market rates for ${cityInput}.`,
+          metadata: { room: r, city: cityInput },
+        }),
+      });
+      const data = await res.json();
+      if (!data.error) setAiAdvice(data.text);
+    } catch {}
+    setAiLoading(false);
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -930,13 +1001,35 @@ function RenovationBot() {
           <label className="label-gold">Select Area to Renovate</label>
           <div className="flex flex-wrap gap-2">
             {rooms.map((r) => (
-              <button key={r} onClick={() => setRoom(r)} className={`rounded-full border px-4 py-2 text-sm transition ${room === r ? "border-skov-gold bg-skov-gold/15 text-skov-gold" : "border-skov-gold/20 hover:border-skov-gold/40"}`}>{r}</button>
+              <button key={r} onClick={() => handleRoomSelect(r)} className={`rounded-full border px-4 py-2 text-sm transition ${room === r ? "border-skov-gold bg-skov-gold/15 text-skov-gold" : "border-skov-gold/20 hover:border-skov-gold/40"}`}>{r}</button>
             ))}
           </div>
         </motion.div>
       )}
       {room && RENOVATION_IDEAS[room] && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+          {/* AI-Generated Renovation Advice */}
+          {aiLoading && (
+            <div className="card-dark p-6 flex items-center gap-4">
+              <div className="relative h-10 w-10 flex-shrink-0">
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="absolute inset-0 rounded-full border-2 border-skov-gold/30 border-t-skov-gold" />
+                <Wrench className="absolute inset-0 m-auto h-4 w-4 text-skov-gold" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-skov-gold font-medium">AI analyzing renovation options...</p>
+                <p className="text-xs text-skov-cream/50">Generating personalized plan for your {room} in {cityInput}</p>
+              </div>
+            </div>
+          )}
+          {aiAdvice && (
+            <div className="card-dark p-5 space-y-2">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-skov-gold" />
+                <p className="text-sm font-medium text-skov-gold">AI Renovation Analysis</p>
+              </div>
+              <div className="text-sm text-skov-cream/85 leading-relaxed whitespace-pre-line">{aiAdvice}</div>
+            </div>
+          )}
           <div className="card-dark p-4 overflow-x-auto">
             <p className="text-sm font-medium text-skov-gold mb-3">{room} Renovation Plan — {cityInput}</p>
             <table className="w-full text-xs">
@@ -1058,6 +1151,28 @@ function PlanBot() {
   const [staircase, setStaircase] = useState<"Internal" | "External">("Internal");
   const [floors, setFloors] = useState(2);
   const [generated, setGenerated] = useState(false);
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleGenerate = async () => {
+    setGenerated(true);
+    setAiLoading(true);
+    setAiAdvice(null);
+    try {
+      const res = await fetch("/api/bot-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          botType: "plan_assistant",
+          message: `I have a ${plotW}x${plotL} ft plot (${plotW * plotL} sqft), ${roadFacing}-facing road, ${staircase} staircase, planning G+${floors - 1} (${floors} floors). Please suggest room layouts with dimensions, Vastu-compliant orientations, ventilation tips, structural advice, and setback requirements.`,
+          metadata: { plotW, plotL, roadFacing, staircase, floors },
+        }),
+      });
+      const data = await res.json();
+      if (!data.error) setAiAdvice(data.text);
+    } catch {}
+    setAiLoading(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -1102,7 +1217,7 @@ function PlanBot() {
           </div>
         </div>
       </div>
-      <button onClick={() => setGenerated(true)} className="btn-gold"><LayoutDashboard className="h-4 w-4" />Generate Plan Suggestion</button>
+      <button onClick={handleGenerate} className="btn-gold"><LayoutDashboard className="h-4 w-4" />Generate Plan Suggestion</button>
       {generated && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
           <div className="card-dark p-4">
@@ -1143,6 +1258,28 @@ function PlanBot() {
               </table>
             </div>
           </div>
+          {/* AI-Generated Plan Advice */}
+          {aiLoading && (
+            <div className="card-dark p-6 flex items-center gap-4">
+              <div className="relative h-10 w-10 flex-shrink-0">
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="absolute inset-0 rounded-full border-2 border-skov-gold/30 border-t-skov-gold" />
+                <LayoutDashboard className="absolute inset-0 m-auto h-4 w-4 text-skov-gold" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-skov-gold font-medium">AI generating house plan advice...</p>
+                <p className="text-xs text-skov-cream/50">Analyzing {plotW}x{plotL} ft {roadFacing}-facing plot</p>
+              </div>
+            </div>
+          )}
+          {aiAdvice && (
+            <div className="card-dark p-5 space-y-2">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-skov-gold" />
+                <p className="text-sm font-medium text-skov-gold">AI House Plan Analysis</p>
+              </div>
+              <div className="text-sm text-skov-cream/85 leading-relaxed whitespace-pre-line">{aiAdvice}</div>
+            </div>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="card-dark p-4 space-y-3">
               <p className="text-sm font-medium text-skov-gold">Plot Summary</p>
@@ -1178,12 +1315,31 @@ function MaterialBot() {
   const [city, setCity] = useState("Raipur");
   const [loading, setLoading] = useState(false);
   const [prices, setPrices] = useState<PriceFetchResult | null>(null);
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const doFetch = async () => {
     setLoading(true);
+    setAiAdvice(null);
     const r = await fetchLivePrices(city);
     setPrices(r);
     setLoading(false);
+    // Also fetch AI recommendations
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/bot-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          botType: "material_budget",
+          message: `I am building a house in ${city}. Please recommend construction materials with current approximate prices, best brands available locally, quantity calculations, and buying tips for ${city}. Include cement, steel, sand, bricks, tiles, paint, electrical, and plumbing.`,
+          metadata: { city },
+        }),
+      });
+      const data = await res.json();
+      if (!data.error) setAiAdvice(data.text);
+    } catch {}
+    setAiLoading(false);
   };
 
   const MATERIALS: { cat: string; brand1: string; brand2: string; key: string; unit: string; qty: string }[] = [
@@ -1266,9 +1422,31 @@ function ProgressBot() {
   const [week, setWeek] = useState(6);
   const [uploaded, setUploaded] = useState(false);
   const [cityInput, setCityInput] = useState("Raipur");
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const stageIdx = Math.min(Math.round((week / 52) * PROGRESS_STAGES.length), PROGRESS_STAGES.length - 1);
   const pct = Math.round((week / 52) * 100);
   const risk = pct > 90 ? "On Track" : pct > 60 ? "Minor Delay" : pct > 30 ? "Needs Attention" : "On Track";
+
+  const fetchProgressAdvice = async () => {
+    setAiLoading(true);
+    setAiAdvice(null);
+    const currentStage = PROGRESS_STAGES[stageIdx];
+    try {
+      const res = await fetch("/api/bot-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          botType: "progress_tracker",
+          message: `My construction in ${cityInput} is at Week ${week} (${pct}% complete). Current phase: ${currentStage}. Please provide a quality checklist for this phase, common mistakes to avoid, what to inspect, timeline expectations, and next phase readiness criteria.`,
+          metadata: { week, city: cityInput, stage: currentStage, pct },
+        }),
+      });
+      const data = await res.json();
+      if (!data.error) setAiAdvice(data.text);
+    } catch {}
+    setAiLoading(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -1333,9 +1511,31 @@ function InteriorBot() {
   const [aesthetics, setAesthetics] = useState("Modern");
   const [generated, setGenerated] = useState(false);
   const [cityInput, setCityInput] = useState("Raipur");
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const roomList = ["Kitchen", "Bedroom", "Living Room", "Bathroom"];
   const styleList = Object.keys(INTERIOR_STYLES);
   const style = INTERIOR_STYLES[aesthetics];
+
+  const handleGenerate = async () => {
+    setGenerated(true);
+    setAiLoading(true);
+    setAiAdvice(null);
+    try {
+      const res = await fetch("/api/bot-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          botType: "interior_design",
+          message: `I want to design my ${room} in ${aesthetics} style in ${cityInput}. Please suggest specific furniture pieces with prices in ₹, a curated color palette with hex codes, layout arrangements, lighting recommendations, Vastu considerations, and budget breakdown. Include Indian brands like Godrej Interio, Urban Ladder, Pepperfry.`,
+          metadata: { room, aesthetics, city: cityInput },
+        }),
+      });
+      const data = await res.json();
+      if (!data.error) setAiAdvice(data.text);
+    } catch {}
+    setAiLoading(false);
+  };
 
   return (
     <div className="space-y-6">

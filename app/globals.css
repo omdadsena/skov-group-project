@@ -16,6 +16,14 @@ html, body {
   max-width: 100%;
 }
 
+* {
+  min-width: 0;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+}
+
 ::selection { background: #C9A45C; color: #0B0B0B; }
 
 .gold-text {
@@ -42,4 +50,24 @@ html, body {
 }
 .label-gold {
   @apply mb-2 block text-sm font-medium text-skov-cream/80;
+}
+
+.content-shell {
+  @apply relative z-10 mx-auto w-full max-w-7xl px-4 md:px-8;
+}
+
+.section-shell {
+  @apply relative w-full max-w-full overflow-hidden border-t border-skov-gold/10 py-20 md:py-28;
+}
+
+.eyebrow {
+  @apply mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-skov-gold;
+}
+
+.section-title {
+  @apply break-words font-display text-3xl font-semibold leading-tight text-skov-cream sm:text-4xl md:text-5xl;
+}
+
+.section-copy {
+  @apply mt-4 max-w-3xl text-sm leading-relaxed text-skov-cream/65 sm:text-base;
 }

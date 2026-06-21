@@ -1,17 +1,5 @@
-import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { notFound } from "next/navigation";
 
-export default async function Page() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
-
-  const { data: todos } = await supabase.from('todos').select()
-
-  return (
-    <ul className="p-8">
-      {todos?.map((todo) => (
-        <li key={todo.id}>{todo.name}</li>
-      ))}
-    </ul>
-  )
+export default function TodosPage() {
+  notFound();
 }

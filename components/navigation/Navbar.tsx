@@ -7,11 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/#services", label: "Services" },
   { href: "/ai-bots", label: "Tools" },
   { href: "/contractors", label: "Contractors" },
-  { href: "/contractors#projects", label: "Projects" },
   { href: "/#cities", label: "Cities" },
-  { href: "/join-as-contractor", label: "Join Us" },
+  { href: "/join", label: "Join Us" },
 ];
 
 export default function Navbar() {
@@ -51,7 +51,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-7">
           {navLinks.map((link) => (
             <Link
               key={link.label}
@@ -71,7 +71,7 @@ export default function Navbar() {
 
         {/* Mobile Hamburger Toggle */}
         <button
-          className="md:hidden text-[#d4af37] p-2 hover:bg-neutral-900 rounded-full transition"
+          className="lg:hidden text-[#d4af37] p-2 hover:bg-neutral-900 rounded-full transition"
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle Menu"
         >
@@ -87,7 +87,7 @@ export default function Navbar() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="md:hidden overflow-hidden border-t border-[#d4af37]/20 bg-[#0a0a0a]"
+            className="lg:hidden overflow-hidden border-t border-[#d4af37]/20 bg-[#0a0a0a]"
           >
             <div className="flex flex-col gap-4 px-4 py-6 border-b border-[#d4af37]/10">
               {navLinks.map((link) => (

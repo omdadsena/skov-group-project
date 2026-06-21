@@ -19,7 +19,7 @@ export default function Footer() {
             </span>
           </div>
           <p className="text-sm text-[#f5f5f0]/60 leading-relaxed">
-            India&apos;s trusted layer for construction & real estate intelligence. We verify contractors, clarify cost parameters, and provide data-backed construction decisions.
+            Construction planning tools, local contractor listings, and project consultation across Chhattisgarh.
           </p>
           {/* WhatsApp Direct CTA */}
           <div className="pt-2">
@@ -37,22 +37,22 @@ export default function Footer() {
         {/* Explore Links */}
         <div>
           <h4 className="font-display text-sm font-semibold text-[#d4af37] tracking-wider uppercase mb-5">
-            Intelligence Suite
+            Services
           </h4>
           <ul className="space-y-3.5 text-sm">
             <li>
               <Link href="/ai-bots" className="hover:text-[#d4af37] transition duration-200">
-                AI Construction Bots
+                Construction & Renovation
               </Link>
             </li>
             <li>
               <Link href="/ai-cost-estimator" className="hover:text-[#d4af37] transition duration-200">
-                AI Cost Estimator
+                Cost Estimator
               </Link>
             </li>
             <li>
               <Link href="/contractors" className="hover:text-[#d4af37] transition duration-200">
-                Verified Contractors
+                Interiors & 3D Design
               </Link>
             </li>
             <li>
@@ -61,8 +61,8 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/join-as-contractor" className="hover:text-[#d4af37] transition duration-200">
-                Partner Onboarding
+              <Link href="/join" className="hover:text-[#d4af37] transition duration-200">
+                Become a Contractor
               </Link>
             </li>
           </ul>
@@ -71,24 +71,23 @@ export default function Footer() {
         {/* Coverage Cities */}
         <div>
           <h4 className="font-display text-sm font-semibold text-[#d4af37] tracking-wider uppercase mb-5">
-            Pilot Coverage
+            Cities
           </h4>
           <ul className="space-y-3.5 text-sm text-[#f5f5f0]/60">
-            <li className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-[#d4af37]" /> Raipur, CG
-            </li>
-            <li className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-[#d4af37]" /> Bilaspur, CG
-            </li>
-            <li className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-[#d4af37]" /> Durg & Bhilai, CG
-            </li>
-            <li className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-[#d4af37]" /> Baloda Bazar & Kawardha
-            </li>
-            <li className="text-xs text-[#d4af37] font-semibold italic">
-              * Pilot network expanding locally
-            </li>
+            {[
+              ["Raipur", "/contractors-in-raipur"],
+              ["Bilaspur", "/contractors-in-bilaspur"],
+              ["Baloda Bazar", "/contractors-in-baloda-bazar"],
+              ["Bhilai", "/contractors-in-bhilai"],
+              ["Durg", "/contractors-in-durg"],
+              ["Kawardha", "/contractors-in-kawardha"],
+            ].map(([city, href]) => (
+              <li key={city}>
+                <Link href={href} className="flex items-center gap-2 hover:text-[#d4af37]">
+                  <MapPin className="h-4 w-4 text-[#d4af37]" /> {city}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -134,7 +133,7 @@ export default function Footer() {
           © {new Date().getFullYear()} SKOV Group. All rights reserved. Registered trademark.
         </div>
         <div className="flex gap-6">
-          <span>Local Intelligence • Verified Trust</span>
+          <span>Local expertise • Transparent planning</span>
           <span>Made in India</span>
         </div>
       </div>

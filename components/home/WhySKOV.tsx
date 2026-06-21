@@ -10,18 +10,18 @@ const benefits = [
     icon: Sparkles,
   },
   {
-    title: "Vetted Local Contractors",
-    desc: "We verify credentials, past works, and financial compliance so you avoid contractors who delay projects.",
+    title: "Verification-First Network",
+    desc: "Contractor onboarding is being designed around credentials, past-work review, and clear documentation.",
     icon: ShieldCheck,
   },
   {
-    title: "No-Overrun Estimates",
-    desc: "Generate complete material and work cost items up-front. Know exact parameters before signing agreements.",
+    title: "Planning Estimates",
+    desc: "Explore material and work-cost assumptions before speaking with suppliers and contractors.",
     icon: Calculator,
   },
   {
     title: "Chhattisgarh Specialization",
-    desc: "Our databases reflect actual market parameters of Raipur, Bilaspur, Bhilai, and nearby supply centers.",
+    desc: "Coverage focuses on Raipur, Bilaspur, Bhilai, and nearby supply centers.",
     icon: Landmark,
   },
 ];
@@ -39,7 +39,7 @@ export default function WhySKOV() {
             Why Choose SKOV GROUP?
           </h2>
           <p className="mt-4 text-[#f5f5f0]/65 font-light text-base sm:text-lg">
-            We are building a trust layer between homeowners and contractors, eliminating over-invoicing and quality shortcuts.
+            We are building a clearer planning and verification layer between homeowners and contractors.
           </p>
         </div>
 

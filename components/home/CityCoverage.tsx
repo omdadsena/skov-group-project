@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { MapPin, Globe, Sparkles } from "lucide-react";
 import { City } from "../../Types";
+import Link from "next/link";
 
 const citiesList: City[] = [
   { name: "Raipur", state: "Chhattisgarh", status: "Active" },
@@ -12,6 +13,15 @@ const citiesList: City[] = [
   { name: "Baloda Bazar", state: "Chhattisgarh", status: "Expanding Soon" },
   { name: "Kawardha", state: "Chhattisgarh", status: "Expanding Soon" },
 ];
+
+const cityLinks: Record<string, string> = {
+  Raipur: "/contractors-in-raipur",
+  Bilaspur: "/contractors-in-bilaspur",
+  Durg: "/contractors-in-durg",
+  Bhilai: "/contractors-in-bhilai",
+  "Baloda Bazar": "/contractors-in-baloda-bazar",
+  Kawardha: "/contractors-in-kawardha",
+};
 
 export default function CityCoverage() {
   return (
@@ -38,7 +48,7 @@ export default function CityCoverage() {
                 <span className="font-bold uppercase tracking-wider block mb-1">
                   Honest Coverage Note
                 </span>
-                We are building our pilot partner network city-by-city. If your project sits outside these active zones, get in touch to check queue availability.
+                Coverage is expanded city-by-city so local rates, service availability, and contractor information remain useful.
               </div>
             </div>
           </div>
@@ -58,7 +68,7 @@ export default function CityCoverage() {
                     : "border-neutral-900 bg-[#070707] opacity-65"
                 }`}
               >
-                <div className="space-y-2">
+                <Link href={cityLinks[city.name]} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className={`grid h-8 w-8 place-items-center rounded-lg ${city.status === "Active" ? "bg-[#d4af37]/15 text-[#d4af37]" : "bg-neutral-850 text-neutral-600"}`}>
                       <MapPin className="h-4.5 w-4.5" />
@@ -70,7 +80,7 @@ export default function CityCoverage() {
                   <h3 className="font-display text-base font-bold text-[#f5f5f0]">
                     {city.name}
                   </h3>
-                </div>
+                </Link>
                 <div className="text-[10px] text-[#f5f5f0]/40 font-medium mt-4">
                   {city.state}
                 </div>
