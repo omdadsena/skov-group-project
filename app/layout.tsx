@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navigation/Navbar";
 import Footer from "@/components/footer/Footer";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
-import ChatbotButton from "@/components/ChatbotButton";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.skovgroup.com"),
   title: "SKOV GROUP — Verified Contractors & Construction Services in Chhattisgarh",
   description:
-    "Find verified contractors in Raipur, Bilaspur, Durg. Free AI cost estimator, 3D home design, construction consultation. Trusted PropTech platform in Chhattisgarh.",
+    "Find listed and verified contractors, construction services, interiors, cost estimation, and home planning support across Raipur, Bilaspur, Baloda Bazar, Bhilai, Durg, and Kawardha.",
   alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
   openGraph: {
     title: "SKOV GROUP — Verified Contractors & Construction Services in Chhattisgarh",
     description: "Find contractors, estimate construction costs, and plan your project across Chhattisgarh.",
@@ -26,7 +33,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="font-sans bg-skov-black text-skov-cream min-h-screen flex flex-col overflow-x-hidden w-full max-w-full">
+      <body className={`${inter.variable} font-sans bg-skov-black text-skov-cream min-h-screen flex flex-col overflow-x-hidden w-full max-w-full`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -50,7 +57,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1 w-full max-w-full overflow-x-hidden">{children}</main>
         <Footer />
         <WhatsAppFloatingButton />
-        <ChatbotButton />
       </body>
     </html>
   );

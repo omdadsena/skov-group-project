@@ -1,3 +1,4 @@
 import CityPage from "@/components/CityPage";
-export const metadata = { title: "Contractors in Kawardha", description: "Find listed contractors in Kawardha for residential construction and civil work." };
+import { citySeo } from "@/lib/seo-content";
+export const metadata = { title: citySeo.Kawardha.title, description: citySeo.Kawardha.description, alternates: { canonical: "/contractors-in-kawardha" } };
 export default function Page() { return <CityPage city="Kawardha" />; }

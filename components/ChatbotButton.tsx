@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Bot, X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AI_FALLBACK_REPLY, requestAiBot } from "@/lib/ai-bot-client";
 
 type Msg = { role: "user" | "bot"; text: string };
 
@@ -22,26 +23,25 @@ export default function ChatbotButton() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>(seed);
+  const [sending, setSending] = useState(false);
   const send = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || sending) return;
     const u = input.trim();
     const currentMessages = [...msgs, { role: "user", text: u } as Msg];
     setMsgs(currentMessages);
     setInput("");
+    setSending(true);
     
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: currentMessages,
-          context: "You are SKOV Assist, a premium construction AI assistant for the SKOV GROUP website. Guide the user regarding house design, contractor verification, costs, or booking consultations. Keep it extremely brief and luxurious."
-        })
+      const result = await requestAiBot({
+        botType: "general",
+        messages: currentMessages,
       });
-      const data = await res.json();
-      setMsgs([...currentMessages, { role: "bot", text: data.text }]);
-    } catch (e) {
-      setMsgs([...currentMessages, { role: "bot", text: "Something went wrong. Please check your network connection." }]);
+      setMsgs([...currentMessages, { role: "bot", text: result.text }]);
+    } catch {
+      setMsgs([...currentMessages, { role: "bot", text: AI_FALLBACK_REPLY }]);
+    } finally {
+      setSending(false);
     }
   };
   return (
@@ -93,16 +93,18 @@ export default function ChatbotButton() {
                   </div>
                 </div>
               ))}
+              {sending && <div className="text-sm text-skov-gold" role="status">AI is thinking…</div>}
             </div>
             <div className="flex items-center gap-2 border-t border-skov-gold/20 p-3">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
+                disabled={sending}
                 placeholder="Ask anything…"
                 className="input-dark !py-2 text-sm"
               />
-              <button onClick={send} className="grid h-10 w-10 place-items-center rounded-full bg-skov-gold text-skov-black">
+              <button aria-label="Send message" disabled={sending || !input.trim()} onClick={send} className="grid h-10 w-10 place-items-center rounded-full bg-skov-gold text-skov-black disabled:opacity-50">
                 <Send className="h-4 w-4" />
               </button>
             </div>

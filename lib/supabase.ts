@@ -6,4 +6,9 @@ const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "";
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Keep build-time route collection stable when environment variables are not
+// available locally. Production requests still use the configured Vercel keys.
+export const supabase = createClient(
+  supabaseUrl || "https://placeholder.supabase.co",
+  supabaseAnonKey || "placeholder-publishable-key",
+);

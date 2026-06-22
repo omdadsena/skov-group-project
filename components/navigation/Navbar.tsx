@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Menu, X, ShieldCheck } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -16,27 +15,14 @@ const navLinks = [
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 w-full max-w-full ${
-        isScrolled
-          ? "bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#d4af37]/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
-          : "bg-transparent border-b border-transparent"
-      }`}
+      className="fixed inset-x-0 top-0 z-50 w-full max-w-full border-b border-[#d4af37]/20 bg-[#0a0a0a]/95"
     >
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 md:px-8">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="group flex min-h-11 items-center gap-2.5">
           <div className="grid h-10 w-10 place-items-center rounded-full border border-[#d4af37]/45 bg-[#d4af37]/10 transition duration-300 group-hover:bg-[#d4af37]/20 group-hover:border-[#d4af37]">
             <ShieldCheck className="h-6 w-6 text-[#d4af37]" />
           </div>
@@ -71,23 +57,22 @@ export default function Navbar() {
 
         {/* Mobile Hamburger Toggle */}
         <button
-          className="lg:hidden text-[#d4af37] p-2 hover:bg-neutral-900 rounded-full transition"
+          type="button"
+          className="grid h-11 w-11 place-items-center rounded-full text-[#e2bd58] transition hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] lg:hidden"
           onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle Menu"
+          aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={isOpen}
+          aria-controls="mobile-navigation"
         >
           {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
 
       {/* Mobile Drawer Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="lg:hidden overflow-hidden border-t border-[#d4af37]/20 bg-[#0a0a0a]"
+      {isOpen && (
+          <div
+            id="mobile-navigation"
+            className="overflow-hidden border-t border-[#d4af37]/20 bg-[#0a0a0a] lg:hidden"
           >
             <div className="flex flex-col gap-4 px-4 py-6 border-b border-[#d4af37]/10">
               {navLinks.map((link) => (
@@ -95,7 +80,7 @@ export default function Navbar() {
                   key={link.label}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="text-base font-medium text-[#f5f5f0]/90 hover:text-[#d4af37] transition duration-200 py-1"
+                  className="flex min-h-11 items-center text-base font-medium text-[#f5f5f0]/90 hover:text-[#d4af37] transition duration-200"
                 >
                   {link.label}
                 </Link>
@@ -108,9 +93,8 @@ export default function Navbar() {
                 Book Consultation
               </Link>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
     </header>
   );
 }

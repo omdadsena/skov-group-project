@@ -1,3 +1,4 @@
 import CityPage from "@/components/CityPage";
-export const metadata = { title: "Contractors in Bilaspur", description: "Find listed contractors in Bilaspur for construction, renovation, and interiors." };
+import { citySeo } from "@/lib/seo-content";
+export const metadata = { title: citySeo.Bilaspur.title, description: citySeo.Bilaspur.description, alternates: { canonical: "/contractors-in-bilaspur" } };
 export default function Page() { return <CityPage city="Bilaspur" />; }

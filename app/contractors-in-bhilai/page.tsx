@@ -1,3 +1,4 @@
 import CityPage from "@/components/CityPage";
-export const metadata = { title: "Contractors in Bhilai", description: "Find listed contractors in Bhilai for construction, structural work, and interiors." };
+import { citySeo } from "@/lib/seo-content";
+export const metadata = { title: citySeo.Bhilai.title, description: citySeo.Bhilai.description, alternates: { canonical: "/contractors-in-bhilai" } };
 export default function Page() { return <CityPage city="Bhilai" />; }

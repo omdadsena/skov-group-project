@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700;800&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,6 +12,10 @@ html, body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   max-width: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 * {
@@ -37,10 +39,10 @@ img, svg, video, canvas {
 .gold-divider { height:1px; background: linear-gradient(90deg, transparent, #C9A45C, transparent); }
 
 .btn-gold {
-  @apply inline-flex items-center justify-center gap-2 rounded-full bg-skov-gold px-6 py-3 font-medium text-skov-black transition hover:bg-[#d8b572] hover:shadow-gold;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-skov-gold px-6 py-3 font-semibold text-skov-black transition hover:bg-[#e0bd66] hover:shadow-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-skov-cream focus-visible:ring-offset-2 focus-visible:ring-offset-skov-black;
 }
 .btn-outline-gold {
-  @apply inline-flex items-center justify-center gap-2 rounded-full border border-skov-gold/60 px-6 py-3 font-medium text-skov-cream transition hover:bg-skov-gold/10;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-skov-gold/70 px-6 py-3 font-semibold text-skov-cream transition hover:bg-skov-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-skov-gold focus-visible:ring-offset-2 focus-visible:ring-offset-skov-black;
 }
 .card-dark {
   @apply rounded-2xl border border-skov-gold/15 bg-[#151515] backdrop-blur-sm;
@@ -69,5 +71,19 @@ img, svg, video, canvas {
 }
 
 .section-copy {
-  @apply mt-4 max-w-3xl text-sm leading-relaxed text-skov-cream/65 sm:text-base;
+  @apply mt-4 max-w-3xl text-sm leading-relaxed text-skov-cream/75 sm:text-base;
+}
+
+.below-fold {
+  content-visibility: auto;
+  contain-intrinsic-size: 800px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

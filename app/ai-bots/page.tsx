@@ -12,6 +12,7 @@ import {
   Info,
 } from "lucide-react";
 import { fetchLivePrices, ALL_CITIES, PriceFetchResult } from "@/lib/priceEngine";
+import { AI_FALLBACK_REPLY, requestAiBot } from "@/lib/ai-bot-client";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type BotId =
@@ -371,21 +372,17 @@ function Sketch3DBot() {
     setApiResult(null);
 
     try {
-      const res = await fetch("/api/generate-3d-concept", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image, style }),
+      const result = await requestAiBot<any>({
+        botType: "sketch_3d",
+        prompt: `Analyze this ${style} home sketch and suggest a practical concept.`,
+        image,
+        style,
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to analyze sketch.");
-      }
-
-      setApiResult(data);
+      if (!result.data) throw new Error(AI_FALLBACK_REPLY);
+      setApiResult(result.data);
       setStage("done");
-    } catch (err: any) {
-      setErrorMsg(err.message || "Failed to generate design concept.");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : AI_FALLBACK_REPLY);
       setStage("upload");
     }
   };
@@ -794,20 +791,14 @@ function ContractorBot() {
     setAiLoading(true);
     setAiError(null);
     try {
-      const res = await fetch("/api/bot-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          botType: "contractor_finder",
-          message: `I need a contractor in ${city} for a ${projType} project. Budget: ${budget}. Timeline: ${timeline}. Please give me personalized advice on finding the right contractor, what to check, typical rates for ${city}, red flags, and negotiation tips.`,
-          metadata: { city, projType, budget, timeline },
-        }),
+      const result = await requestAiBot({
+        botType: "contractor_finder",
+        prompt: `I need a contractor in ${city} for a ${projType} project. Budget: ${budget}. Timeline: ${timeline}. Please give me personalized advice on finding the right contractor, what to check, typical rates for ${city}, red flags, and negotiation tips.`,
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setAiAdvice(data.text);
-    } catch (err: any) {
-      setAiError(err.message || "Could not get AI advice. Showing general guidance below.");
+      setAiAdvice(result.text);
+      if (result.fallback) setAiError("Live AI guidance is temporarily unavailable; showing the safe fallback reply.");
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : AI_FALLBACK_REPLY);
     }
     setAiLoading(false);
   };
@@ -963,18 +954,14 @@ function RenovationBot() {
     setAiLoading(true);
     setAiAdvice(null);
     try {
-      const res = await fetch("/api/bot-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          botType: "renovation_advisor",
-          message: `I want to renovate my ${r} in ${cityInput}. I have uploaded a photo. Please analyze and suggest specific renovation steps, materials, brands available in India, cost estimates per item, priority order, and timeline. Consider local market rates for ${cityInput}.`,
-          metadata: { room: r, city: cityInput },
-        }),
+      const result = await requestAiBot({
+        botType: "renovation_advisor",
+        prompt: `I want to renovate my ${r} in ${cityInput}. Please suggest specific renovation steps, materials, brands available in India, cost estimates per item, priority order, and timeline. Consider local market rates for ${cityInput}.`,
       });
-      const data = await res.json();
-      if (!data.error) setAiAdvice(data.text);
-    } catch {}
+      setAiAdvice(result.text);
+    } catch {
+      setAiAdvice(AI_FALLBACK_REPLY);
+    }
     setAiLoading(false);
   };
   return (
@@ -1159,18 +1146,14 @@ function PlanBot() {
     setAiLoading(true);
     setAiAdvice(null);
     try {
-      const res = await fetch("/api/bot-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          botType: "plan_assistant",
-          message: `I have a ${plotW}x${plotL} ft plot (${plotW * plotL} sqft), ${roadFacing}-facing road, ${staircase} staircase, planning G+${floors - 1} (${floors} floors). Please suggest room layouts with dimensions, Vastu-compliant orientations, ventilation tips, structural advice, and setback requirements.`,
-          metadata: { plotW, plotL, roadFacing, staircase, floors },
-        }),
+      const result = await requestAiBot({
+        botType: "plan_assistant",
+        prompt: `I have a ${plotW}x${plotL} ft plot (${plotW * plotL} sqft), ${roadFacing}-facing road, ${staircase} staircase, planning G+${floors - 1} (${floors} floors). Please suggest room layouts with dimensions, Vastu-compliant orientations, ventilation tips, structural advice, and setback requirements.`,
       });
-      const data = await res.json();
-      if (!data.error) setAiAdvice(data.text);
-    } catch {}
+      setAiAdvice(result.text);
+    } catch {
+      setAiAdvice(AI_FALLBACK_REPLY);
+    }
     setAiLoading(false);
   };
 
@@ -1327,18 +1310,14 @@ function MaterialBot() {
     // Also fetch AI recommendations
     setAiLoading(true);
     try {
-      const res = await fetch("/api/bot-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          botType: "material_budget",
-          message: `I am building a house in ${city}. Please recommend construction materials with current approximate prices, best brands available locally, quantity calculations, and buying tips for ${city}. Include cement, steel, sand, bricks, tiles, paint, electrical, and plumbing.`,
-          metadata: { city },
-        }),
+      const result = await requestAiBot({
+        botType: "material_budget",
+        prompt: `I am building a house in ${city}. Please recommend construction materials with current approximate prices, best brands available locally, quantity calculations, and buying tips for ${city}. Include cement, steel, sand, bricks, tiles, paint, electrical, and plumbing.`,
       });
-      const data = await res.json();
-      if (!data.error) setAiAdvice(data.text);
-    } catch {}
+      setAiAdvice(result.text);
+    } catch {
+      setAiAdvice(AI_FALLBACK_REPLY);
+    }
     setAiLoading(false);
   };
 
@@ -1433,18 +1412,14 @@ function ProgressBot() {
     setAiAdvice(null);
     const currentStage = PROGRESS_STAGES[stageIdx];
     try {
-      const res = await fetch("/api/bot-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          botType: "progress_tracker",
-          message: `My construction in ${cityInput} is at Week ${week} (${pct}% complete). Current phase: ${currentStage}. Please provide a quality checklist for this phase, common mistakes to avoid, what to inspect, timeline expectations, and next phase readiness criteria.`,
-          metadata: { week, city: cityInput, stage: currentStage, pct },
-        }),
+      const result = await requestAiBot({
+        botType: "progress_tracker",
+        prompt: `My construction in ${cityInput} is at Week ${week} (${pct}% complete). Current phase: ${currentStage}. Please provide a quality checklist for this phase, common mistakes to avoid, what to inspect, timeline expectations, and next phase readiness criteria.`,
       });
-      const data = await res.json();
-      if (!data.error) setAiAdvice(data.text);
-    } catch {}
+      setAiAdvice(result.text);
+    } catch {
+      setAiAdvice(AI_FALLBACK_REPLY);
+    }
     setAiLoading(false);
   };
 
@@ -1522,18 +1497,14 @@ function InteriorBot() {
     setAiLoading(true);
     setAiAdvice(null);
     try {
-      const res = await fetch("/api/bot-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          botType: "interior_design",
-          message: `I want to design my ${room} in ${aesthetics} style in ${cityInput}. Please suggest specific furniture pieces with prices in ₹, a curated color palette with hex codes, layout arrangements, lighting recommendations, Vastu considerations, and budget breakdown. Include Indian brands like Godrej Interio, Urban Ladder, Pepperfry.`,
-          metadata: { room, aesthetics, city: cityInput },
-        }),
+      const result = await requestAiBot({
+        botType: "interior_design",
+        prompt: `I want to design my ${room} in ${aesthetics} style in ${cityInput}. Please suggest specific furniture pieces with prices in ₹, a curated color palette with hex codes, layout arrangements, lighting recommendations, Vastu considerations, and budget breakdown. Include Indian brands like Godrej Interio, Urban Ladder, Pepperfry.`,
       });
-      const data = await res.json();
-      if (!data.error) setAiAdvice(data.text);
-    } catch {}
+      setAiAdvice(result.text);
+    } catch {
+      setAiAdvice(AI_FALLBACK_REPLY);
+    }
     setAiLoading(false);
   };
 
@@ -1617,30 +1588,29 @@ function QABot() {
     { role: "bot", text: "Ask anything about joining SKOV GROUP as a contractor, free profile listing, leads, SKOV Verified application, or any construction question in Hindi or English! 🏗️" },
   ]);
   const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
   const send = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || sending) return;
     const u = input.trim();
     const ts = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
     const currentMessages = [...msgs, { role: "user", text: u, ts } as Msg];
     setMsgs(currentMessages);
     setInput("");
+    setSending(true);
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: currentMessages,
-          context: "You are a contractor Q&A assistant for the SKOV GROUP website. Answer questions about registering as a contractor, free listings, physical verification checkmarks, leads, and construction details (steel, sand, plastering, foundation, vastu, etc.) in a mix of Hindi and English (Hinglish) or English as requested. Keep replies helpful and straight to the point."
-        })
+      const result = await requestAiBot({
+        botType: "qa_bot",
+        messages: currentMessages.map(({ role, text }) => ({ role, text })),
       });
-      const data = await res.json();
-      setMsgs([...currentMessages, { role: "bot", text: data.text, ts }]);
-    } catch (e) {
-      setMsgs([...currentMessages, { role: "bot", text: "Something went wrong. Please check your network connection.", ts }]);
+      setMsgs([...currentMessages, { role: "bot", text: result.text, ts }]);
+    } catch {
+      setMsgs([...currentMessages, { role: "bot", text: AI_FALLBACK_REPLY, ts }]);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -1675,11 +1645,18 @@ function QABot() {
               </div>
             </div>
           ))}
+          {sending && (
+            <div className="flex items-center gap-2 text-sm text-skov-gold" role="status" aria-live="polite">
+              <Loader2 className="h-4 w-4 animate-spin" /> AI is thinking…
+            </div>
+          )}
           <div ref={bottomRef} />
         </div>
         <div className="flex gap-2 border-t border-skov-gold/15 p-3">
-          <input className="input-dark !py-2 text-sm" placeholder="Poochho kuch bhi... (Ask anything in Hindi or English)" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} />
-          <button onClick={send} className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-skov-gold text-skov-black"><Send className="h-4 w-4" /></button>
+          <input disabled={sending} className="input-dark !py-2 text-sm disabled:opacity-60" placeholder="Poochho kuch bhi... (Ask anything in Hindi or English)" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} />
+          <button aria-label="Send question" disabled={sending || !input.trim()} onClick={send} className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-skov-gold text-skov-black disabled:opacity-50">
+            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          </button>
         </div>
       </div>
       <BotCTA label="Register as a contractor" icon={Users} />

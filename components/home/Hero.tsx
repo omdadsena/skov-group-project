@@ -1,8 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function Hero() {
   return (
@@ -13,41 +10,29 @@ export default function Hero() {
 
       <div className="relative z-10 w-full max-w-5xl px-4 flex flex-col items-center">
         {/* Subtle Luxury Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+        <div
           className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-[#d4af37]/35 bg-[#d4af37]/5 px-4 py-2 text-center text-[10px] uppercase tracking-[0.18em] text-[#d4af37] sm:text-xs sm:tracking-[0.25em]"
         >
           <Sparkles className="h-3.5 w-3.5 shrink-0" /> Construction services across Chhattisgarh
-        </motion.div>
+        </div>
 
         {/* Trillion-dollar Heading */}
-        <motion.h1
-          initial={{ opacity: 0, y: 25 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="font-display text-3xl sm:text-5xl md:text-7xl font-semibold leading-[1.1] tracking-tight text-[#f5f5f0]"
+        <h1
+          className="font-display text-4xl font-semibold leading-[1.08] tracking-tight text-[#f5f5f0] sm:text-5xl md:text-7xl"
         >
           Verified Contractors &amp; Construction Services{" "}
           <span className="gold-text">in Chhattisgarh</span>
-        </motion.h1>
+        </h1>
 
         {/* Value Proposition */}
-        <motion.p
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-8 max-w-3xl text-base sm:text-xl font-light text-[#f5f5f0]/80 leading-relaxed"
+        <p
+          className="mt-8 max-w-3xl text-base leading-relaxed text-[#f5f5f0]/85 sm:text-xl"
         >
           Compare listed contractors, estimate project costs, explore home-design tools, and get practical construction guidance in one place.
-        </motion.p>
+        </p>
 
         {/* Call to Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+        <div
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto"
         >
           <Link
@@ -62,7 +47,7 @@ export default function Hero() {
           >
             Get Cost Estimate
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

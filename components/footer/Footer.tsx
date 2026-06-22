@@ -18,7 +18,7 @@ export default function Footer() {
               SKOV <span className="text-[#d4af37]">GROUP</span>
             </span>
           </div>
-          <p className="text-sm text-[#f5f5f0]/60 leading-relaxed">
+          <p className="text-sm text-[#f5f5f0]/75 leading-relaxed">
             Construction planning tools, local contractor listings, and project consultation across Chhattisgarh.
           </p>
           {/* WhatsApp Direct CTA */}
@@ -27,7 +27,7 @@ export default function Footer() {
               href="https://wa.me/9131800113"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[#25D366]/10 border border-[#25D366]/40 px-4 py-2 text-xs font-semibold text-[#25D366] hover:bg-[#25D366]/20 transition duration-300"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#128C4A]/15 border border-[#25D366]/50 px-4 py-2 text-sm font-semibold text-[#52e58c] hover:bg-[#128C4A]/25 transition duration-300"
             >
               <MessageCircle className="h-4 w-4 fill-[#25D366]" /> Chat on WhatsApp
             </a>
@@ -36,32 +36,32 @@ export default function Footer() {
 
         {/* Explore Links */}
         <div>
-          <h4 className="font-display text-sm font-semibold text-[#d4af37] tracking-wider uppercase mb-5">
+          <h2 className="font-display text-sm font-semibold text-[#e2bd58] tracking-wider uppercase mb-5">
             Services
-          </h4>
+          </h2>
           <ul className="space-y-3.5 text-sm">
             <li>
-              <Link href="/ai-bots" className="hover:text-[#d4af37] transition duration-200">
+              <Link href="/ai-bots" className="flex min-h-11 items-center hover:text-[#d4af37] transition duration-200">
                 Construction & Renovation
               </Link>
             </li>
             <li>
-              <Link href="/ai-cost-estimator" className="hover:text-[#d4af37] transition duration-200">
+              <Link href="/ai-cost-estimator" className="flex min-h-11 items-center hover:text-[#d4af37] transition duration-200">
                 Cost Estimator
               </Link>
             </li>
             <li>
-              <Link href="/contractors" className="hover:text-[#d4af37] transition duration-200">
+              <Link href="/contractors" className="flex min-h-11 items-center hover:text-[#d4af37] transition duration-200">
                 Interiors & 3D Design
               </Link>
             </li>
             <li>
-              <Link href="/consultation" className="hover:text-[#d4af37] transition duration-200">
+              <Link href="/consultation" className="flex min-h-11 items-center hover:text-[#d4af37] transition duration-200">
                 Expert Consultation
               </Link>
             </li>
             <li>
-              <Link href="/join" className="hover:text-[#d4af37] transition duration-200">
+              <Link href="/join" className="flex min-h-11 items-center hover:text-[#d4af37] transition duration-200">
                 Become a Contractor
               </Link>
             </li>
@@ -70,10 +70,10 @@ export default function Footer() {
 
         {/* Coverage Cities */}
         <div>
-          <h4 className="font-display text-sm font-semibold text-[#d4af37] tracking-wider uppercase mb-5">
+          <h2 className="font-display text-sm font-semibold text-[#e2bd58] tracking-wider uppercase mb-5">
             Cities
-          </h4>
-          <ul className="space-y-3.5 text-sm text-[#f5f5f0]/60">
+          </h2>
+          <ul className="space-y-3.5 text-sm text-[#f5f5f0]/75">
             {[
               ["Raipur", "/contractors-in-raipur"],
               ["Bilaspur", "/contractors-in-bilaspur"],
@@ -83,7 +83,7 @@ export default function Footer() {
               ["Kawardha", "/contractors-in-kawardha"],
             ].map(([city, href]) => (
               <li key={city}>
-                <Link href={href} className="flex items-center gap-2 hover:text-[#d4af37]">
+                <Link href={href} className="flex min-h-11 items-center gap-2 hover:text-[#d4af37]">
                   <MapPin className="h-4 w-4 text-[#d4af37]" /> {city}
                 </Link>
               </li>
@@ -93,9 +93,9 @@ export default function Footer() {
 
         {/* Contacts */}
         <div>
-          <h4 className="font-display text-sm font-semibold text-[#d4af37] tracking-wider uppercase mb-5">
+          <h2 className="font-display text-sm font-semibold text-[#e2bd58] tracking-wider uppercase mb-5">
             Support & Legal
-          </h4>
+          </h2>
           <ul className="space-y-3.5 text-sm">
             <li className="flex items-center gap-2 text-[#f5f5f0]/70">
               <Phone className="h-4 w-4 text-[#d4af37]" /> +91 91318 00113
@@ -105,17 +105,17 @@ export default function Footer() {
             </li>
             <li className="pt-2 border-t border-neutral-900 mt-4 space-y-2">
               <div>
-                <Link href="/privacy" className="text-xs text-[#f5f5f0]/50 hover:text-[#d4af37] transition duration-200">
+                <Link href="/privacy" className="inline-flex min-h-11 items-center text-sm text-[#f5f5f0]/75 hover:text-[#d4af37] transition duration-200">
                   Privacy Policy
                 </Link>
               </div>
               <div>
-                <Link href="/terms" className="text-xs text-[#f5f5f0]/50 hover:text-[#d4af37] transition duration-200">
+                <Link href="/terms" className="inline-flex min-h-11 items-center text-sm text-[#f5f5f0]/75 hover:text-[#d4af37] transition duration-200">
                   Terms of Service
                 </Link>
               </div>
               <div>
-                <Link href="/contact" className="text-xs text-[#f5f5f0]/50 hover:text-[#d4af37] transition duration-200">
+                <Link href="/contact" className="inline-flex min-h-11 items-center text-sm text-[#f5f5f0]/75 hover:text-[#d4af37] transition duration-200">
                   Contact Us
                 </Link>
               </div>
@@ -124,11 +124,22 @@ export default function Footer() {
         </div>
       </div>
 
+      <nav aria-label="Construction guides" className="mx-auto max-w-7xl px-4 pb-10 md:px-8">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-[#e2bd58]">Popular construction guides</h2>
+        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm text-skov-cream/75">
+          <Link href="/construction-cost-in-raipur" className="min-h-11 py-3 hover:text-skov-gold">Construction cost in Raipur</Link>
+          <Link href="/best-contractors-in-raipur" className="min-h-11 py-3 hover:text-skov-gold">Best contractors in Raipur</Link>
+          <Link href="/house-construction-cost-in-chhattisgarh" className="min-h-11 py-3 hover:text-skov-gold">House construction cost in Chhattisgarh</Link>
+          <Link href="/verified-contractors-in-chhattisgarh" className="min-h-11 py-3 hover:text-skov-gold">Verified contractors in Chhattisgarh</Link>
+          <Link href="/interior-designers-in-raipur" className="min-h-11 py-3 hover:text-skov-gold">Interior designers in Raipur</Link>
+        </div>
+      </nav>
+
       {/* Gold Divider Line */}
       <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37]/30 to-transparent" />
 
       {/* Bottom Bar */}
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#f5f5f0]/40">
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#f5f5f0]/70">
         <div>
           © {new Date().getFullYear()} SKOV Group. All rights reserved. Registered trademark.
         </div>

@@ -111,7 +111,7 @@ export default function JoinPage() {
                 <p.icon className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="font-display text-lg">{p.title}</h4>
+                <h2 className="font-display text-lg">{p.title}</h2>
                 <p className="text-sm text-skov-cream/65">{p.desc}</p>
               </div>
             </motion.div>
@@ -124,7 +124,7 @@ export default function JoinPage() {
               <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-skov-gold/15 text-skov-gold">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h3 className="font-display text-2xl">Application Submitted!</h3>
+              <h2 className="font-display text-2xl">Application Submitted!</h2>
               <p className="text-skov-cream/65">We&apos;ll verify your details in 2-3 business days and get back to you.</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
@@ -142,68 +142,70 @@ export default function JoinPage() {
             <>
               <div className="mb-5 flex items-center gap-3">
                 <Hammer className="h-5 w-5 text-skov-gold" />
-                <h3 className="font-display text-xl">Contractor Verification Application</h3>
+                <h2 className="font-display text-xl">Contractor Verification Application</h2>
               </div>
 
               {error && (
-                <div className="mb-4 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+                <div id="contractor-form-error" role="alert" aria-live="polite" className="mb-4 text-sm text-red-200 bg-red-500/10 border border-red-500/30 rounded-xl p-3">
                   {error}
                 </div>
               )}
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="label-gold">Company name *</label>
-                  <input required value={f.company} onChange={(e) => u("company", e.target.value)} className="input-dark" />
+                  <label htmlFor="contractor-company" className="label-gold">Company name *</label>
+                  <input id="contractor-company" autoComplete="organization" required value={f.company} onChange={(e) => u("company", e.target.value)} className="input-dark" />
                 </div>
                 <div>
-                  <label className="label-gold">Contact person *</label>
-                  <input required value={f.contact} onChange={(e) => u("contact", e.target.value)} className="input-dark" />
+                  <label htmlFor="contractor-contact" className="label-gold">Contact person *</label>
+                  <input id="contractor-contact" autoComplete="name" required value={f.contact} onChange={(e) => u("contact", e.target.value)} className="input-dark" />
                 </div>
                 <div>
-                  <label className="label-gold">Phone (10 digits) *</label>
-                  <input required value={f.phone} onChange={(e) => u("phone", e.target.value)} className="input-dark" placeholder="9131800113" maxLength={10} />
+                  <label htmlFor="contractor-phone" className="label-gold">Phone (10 digits) *</label>
+                  <input id="contractor-phone" autoComplete="tel" aria-describedby={error ? "contractor-form-error" : undefined} inputMode="numeric" required value={f.phone} onChange={(e) => u("phone", e.target.value.replace(/\D/g, ""))} className="input-dark" placeholder="9131800113" maxLength={10} />
                 </div>
                 <div>
-                  <label className="label-gold">Email</label>
-                  <input type="email" value={f.email} onChange={(e) => u("email", e.target.value)} className="input-dark" />
+                  <label htmlFor="contractor-email" className="label-gold">Email</label>
+                  <input id="contractor-email" autoComplete="email" type="email" value={f.email} onChange={(e) => u("email", e.target.value)} className="input-dark" />
                 </div>
                 <div>
-                  <label className="label-gold">City *</label>
-                  <input required value={f.city} onChange={(e) => u("city", e.target.value)} className="input-dark" />
+                  <label htmlFor="contractor-city" className="label-gold">City *</label>
+                  <input id="contractor-city" autoComplete="address-level2" required value={f.city} onChange={(e) => u("city", e.target.value)} className="input-dark" />
                 </div>
                 <div>
-                  <label className="label-gold">State *</label>
-                  <select value={f.state} onChange={(e) => u("state", e.target.value)} className="input-dark">
+                  <label htmlFor="contractor-state" className="label-gold">State *</label>
+                  <select id="contractor-state" autoComplete="address-level1" value={f.state} onChange={(e) => u("state", e.target.value)} className="input-dark">
                     {STATES.map((s) => <option key={s} className="bg-skov-black">{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label-gold">Years of experience</label>
-                  <input type="number" min={0} value={f.experience} onChange={(e) => u("experience", e.target.value)} className="input-dark" />
+                  <label htmlFor="contractor-experience" className="label-gold">Years of experience</label>
+                  <input id="contractor-experience" type="number" min={0} value={f.experience} onChange={(e) => u("experience", e.target.value)} className="input-dark" />
                 </div>
                 <div>
-                  <label className="label-gold">License / Registration number</label>
-                  <input value={f.license} onChange={(e) => u("license", e.target.value)} className="input-dark" placeholder="Optional" />
+                  <label htmlFor="contractor-license" className="label-gold">License / Registration number</label>
+                  <input id="contractor-license" value={f.license} onChange={(e) => u("license", e.target.value)} className="input-dark" placeholder="Optional" />
                 </div>
                 <div>
-                  <label className="label-gold">GST number</label>
-                  <input value={f.gst} onChange={(e) => u("gst", e.target.value)} className="input-dark" placeholder="22ABCDE1234F1Z5" />
+                  <label htmlFor="contractor-gst" className="label-gold">GST number</label>
+                  <input id="contractor-gst" value={f.gst} onChange={(e) => u("gst", e.target.value)} className="input-dark" placeholder="22ABCDE1234F1Z5" />
                 </div>
                 <div>
-                  <label className="label-gold">Portfolio link (Drive / Website)</label>
-                  <input value={f.portfolio} onChange={(e) => u("portfolio", e.target.value)} className="input-dark" placeholder="https://…" />
+                  <label htmlFor="contractor-portfolio" className="label-gold">Portfolio link (Drive / Website)</label>
+                  <input id="contractor-portfolio" inputMode="url" value={f.portfolio} onChange={(e) => u("portfolio", e.target.value)} className="input-dark" placeholder="https://…" />
                 </div>
               </div>
 
               {/* Services Multi-select */}
               <div className="mt-5">
-                <label className="label-gold">Services offered (select all that apply) *</label>
+                <span className="label-gold" id="contractor-services-label">Services offered (select all that apply) *</span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {SERVICE_OPTIONS.map((s) => (
                     <button
                       key={s}
                       type="button"
+                      aria-pressed={selectedServices.includes(s)}
+                      aria-describedby="contractor-services-label"
                       onClick={() => toggleService(s)}
                       className={`rounded-full border px-3 py-1.5 text-xs transition ${
                         selectedServices.includes(s)

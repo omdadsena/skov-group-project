@@ -52,7 +52,7 @@ export default function EstimatorPage() {
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-skov-gold/10 text-skov-gold">
               <Calculator className="h-5 w-5" />
             </div>
-            <h3 className="font-display text-xl">Project details</h3>
+            <h2 className="font-display text-xl">Project details</h2>
           </div>
 
           <label className="label-gold flex items-center gap-2"><Ruler className="h-4 w-4 text-skov-gold" /> Built-up area (sqft)</label>

@@ -13,8 +13,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["Playfair Display", "serif"],
-        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Georgia", "Times New Roman", "serif"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       boxShadow: {
         gold: "0 10px 40px -10px rgba(201,164,92,0.45)",

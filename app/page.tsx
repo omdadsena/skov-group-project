@@ -1,65 +1,66 @@
-"use client";
-
 import Hero from "@/components/home/Hero";
 import TrustStrip from "@/components/home/TrustStrip";
 import Services from "@/components/home/Services";
 import ContractorDirectory from "@/components/home/ContractorDirectory";
-import ToolsGrid from "@/components/home/ToolsGrid";
-import HowItWorks from "@/components/home/HowItWorks";
-import VerifiedContractors from "@/components/home/VerifiedContractors";
-import AICostEstimator from "@/components/home/AICostEstimator";
-import ThreeDHomeDesign from "@/components/home/3DHomeDesign";
-import ProjectsGallery from "@/components/home/ProjectsGallery";
-import CityCoverage from "@/components/home/CityCoverage";
-import WhySKOV from "@/components/home/WhySKOV";
-import ContractorCTA from "@/components/home/ContractorCTA";
-import ConsultationCTA from "@/components/home/ConsultationCTA";
-import FAQ from "@/components/home/FAQ";
+import {
+  CityLinksSection,
+  ConsultationBanner,
+  HomeFaq,
+  PartnerCta,
+  ProcessSection,
+  ToolsSection,
+  homeFaqs,
+} from "@/components/home/HomeStaticSections";
+
+const homeSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.skovgroup.com/#organization",
+      name: "SKOV GROUP",
+      url: "https://www.skovgroup.com",
+      logo: "https://www.skovgroup.com/og-image.svg",
+      contactPoint: { "@type": "ContactPoint", telephone: "+919131800113", contactType: "customer service", areaServed: "IN" },
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.skovgroup.com/#website",
+      url: "https://www.skovgroup.com",
+      name: "SKOV GROUP",
+      publisher: { "@id": "https://www.skovgroup.com/#organization" },
+    },
+    {
+      "@type": "Service",
+      serviceType: "Construction contractor discovery and planning",
+      provider: { "@id": "https://www.skovgroup.com/#organization" },
+      areaServed: ["Raipur", "Bilaspur", "Baloda Bazar", "Bhilai", "Durg", "Kawardha"],
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: homeFaqs.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      })),
+    },
+  ],
+};
 
 export default function Home() {
   return (
     <div className="w-full max-w-full overflow-x-hidden bg-[#0a0a0a]">
-      {/* 1. Hero Section */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeSchema) }} />
       <Hero />
-
-      {/* 2. Truststrip */}
       <TrustStrip />
-
       <Services />
       <ContractorDirectory />
-
-      {/* SKOV Tools Suite */}
-      <ToolsGrid />
-
-      {/* 4. How It Works */}
-      <HowItWorks />
-
-      {/* 5. Verified Contractors Process */}
-      <VerifiedContractors />
-
-      {/* 6. AI Cost Estimator Interactive Preview */}
-      <AICostEstimator />
-
-      {/* 7. 3D Home Design Mockup Preview */}
-      <ThreeDHomeDesign />
-
-      {/* 8. Projects Gallery */}
-      <ProjectsGallery />
-
-      {/* 9. City Coverage Footprint */}
-      <CityCoverage />
-
-      {/* 10. Core Value Grid (Why SKOV) */}
-      <WhySKOV />
-
-      {/* 11. Contractor Recruitment CTA */}
-      <ContractorCTA />
-
-      {/* 12. Consultation Request Callback Form */}
-      <ConsultationCTA />
-
-      {/* 13. Help Center FAQs */}
-      <FAQ />
+      <ToolsSection />
+      <ProcessSection />
+      <CityLinksSection />
+      <PartnerCta />
+      <ConsultationBanner />
+      <HomeFaq />
     </div>
   );
 }

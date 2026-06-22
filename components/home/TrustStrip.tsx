@@ -11,9 +11,9 @@ export default function TrustStrip() {
               <ShieldCheck className="h-5.5 w-5.5" />
             </div>
             <div>
-              <h4 className="text-xs uppercase tracking-widest text-[#d4af37]/80 font-semibold">
+              <p className="text-xs uppercase tracking-widest text-[#e2bd58] font-semibold">
                 Verified Contractors
-              </h4>
+              </p>
               <p className="text-sm text-[#f5f5f0]/75 mt-0.5 font-medium">
                 Gold badge only after approval
               </p>
@@ -26,9 +26,9 @@ export default function TrustStrip() {
               <BadgeCheck className="h-5.5 w-5.5" />
             </div>
             <div>
-              <h4 className="text-xs uppercase tracking-widest text-[#d4af37]/80 font-semibold">
+              <p className="text-xs uppercase tracking-widest text-[#e2bd58] font-semibold">
                 Transparent Estimates
-              </h4>
+              </p>
               <p className="text-sm text-[#f5f5f0]/75 mt-0.5 font-medium">
                 Clear planning breakdowns
               </p>
@@ -41,9 +41,9 @@ export default function TrustStrip() {
               <MapPin className="h-5.5 w-5.5" />
             </div>
             <div>
-              <h4 className="text-xs uppercase tracking-widest text-[#d4af37]/80 font-semibold">
+              <p className="text-xs uppercase tracking-widest text-[#e2bd58] font-semibold">
                 City-Wise Service
-              </h4>
+              </p>
               <p className="text-sm text-[#f5f5f0]/75 mt-0.5 font-medium">
                 Local Chhattisgarh coverage
               </p>

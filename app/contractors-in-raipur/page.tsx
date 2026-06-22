@@ -1,3 +1,4 @@
 import CityPage from "@/components/CityPage";
-export const metadata = { title: "Contractors in Raipur", description: "Find listed contractors in Raipur for construction, renovation, and interiors." };
+import { citySeo } from "@/lib/seo-content";
+export const metadata = { title: citySeo.Raipur.title, description: citySeo.Raipur.description, alternates: { canonical: "/contractors-in-raipur" } };
 export default function Page() { return <CityPage city="Raipur" />; }

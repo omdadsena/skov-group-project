@@ -11,7 +11,7 @@ export default function ContractorCard({ contractor }: { contractor: DirectoryCo
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h3 className="break-words font-display text-xl text-skov-cream">{contractor.company}</h3>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-skov-cream/60">
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-skov-cream/75">
             <MapPin className="h-4 w-4 shrink-0 text-skov-gold" />
             {contractor.city}, {contractor.state}
           </p>
@@ -20,7 +20,7 @@ export default function ContractorCard({ contractor }: { contractor: DirectoryCo
           className={`inline-flex w-fit shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
             contractor.isVerified
               ? "border-skov-gold/50 bg-skov-gold/15 text-skov-gold"
-              : "border-white/15 bg-white/5 text-skov-cream/60"
+              : "border-white/20 bg-white/5 text-skov-cream/75"
           }`}
         >
           {contractor.isVerified && <BadgeCheck className="h-3.5 w-3.5" />}
@@ -30,7 +30,7 @@ export default function ContractorCard({ contractor }: { contractor: DirectoryCo
 
       <div className="mt-5 flex flex-wrap gap-2">
         {contractor.services.map((service) => (
-          <span key={service} className="rounded-full border border-skov-gold/20 px-3 py-1 text-xs text-skov-cream/70">
+          <span key={service} className="rounded-full border border-skov-gold/25 px-3 py-1 text-xs text-skov-cream/80">
             {service}
           </span>
         ))}

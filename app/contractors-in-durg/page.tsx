@@ -1,3 +1,4 @@
 import CityPage from "@/components/CityPage";
-export const metadata = { title: "Contractors in Durg", description: "Find listed contractors in Durg for construction, renovation, and interiors." };
+import { citySeo } from "@/lib/seo-content";
+export const metadata = { title: citySeo.Durg.title, description: citySeo.Durg.description, alternates: { canonical: "/contractors-in-durg" } };
 export default function Page() { return <CityPage city="Durg" />; }
