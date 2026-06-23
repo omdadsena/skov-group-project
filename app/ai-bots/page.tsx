@@ -302,14 +302,52 @@ function UploadZone({ onUpload, label }: { onUpload: (base64: string, name: stri
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<string | null>(null);
 
-  const handleFile = (f: File) => {
+  const readFile = (f: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Could not read this image."));
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsDataURL(f);
+    });
+
+  const compressImage = async (f: File) => {
+    const original = await readFile(f);
+    if (f.size <= 1_500_000 || f.type === "image/svg+xml") return original;
+
+    const source = new Image();
+    source.src = original;
+    await source.decode();
+
+    const maxDimension = 1400;
+    const scale = Math.min(1, maxDimension / Math.max(source.naturalWidth, source.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(source.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(source.naturalHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) return original;
+
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(source, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.78);
+  };
+
+  const handleFile = async (f: File) => {
+    if (!f.type.startsWith("image/")) return;
+    setFile(`Optimizing ${f.name}…`);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
+    try {
+      const base64 = await compressImage(f);
       setFile(f.name);
       onUpload(base64, f.name);
-    };
-    reader.readAsDataURL(f);
+    } catch {
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setFile(f.name);
+        onUpload(base64, f.name);
+      };
+      reader.readAsDataURL(f);
+    }
   };
 
   return (
@@ -342,49 +380,200 @@ function UploadZone({ onUpload, label }: { onUpload: (base64: string, name: stri
 
 // ── Bot Panels ────────────────────────────────────────────────────────────
 
+type SketchConceptResult = {
+  generationId: string;
+  summary: string;
+  detectedInput: string;
+  estimated_room_count: number;
+  rooms: Array<{
+    name: string;
+    zone: string;
+    approximateSize: string;
+    adjacency: string[];
+    notes: string;
+  }>;
+  layout: {
+    orientation: string;
+    zoning: string;
+    circulation: string;
+    daylightVentilation: string;
+    entryStrategy: string;
+    uncertainties: string[];
+  };
+  elevation: {
+    style: string;
+    massing: string;
+    materials: string[];
+    openings: string;
+    roof: string;
+    climateResponse: string;
+  };
+  threeDConcepts: Array<{
+    title: string;
+    designIntent: string;
+    form: string;
+    materials: string[];
+    landscape: string;
+    limitations: string;
+  }>;
+  recommendations: string[];
+  layout_notes: string[];
+  suggested_improvements: string[];
+  elevation_idea: string;
+  "3d_concept_description": string;
+  warnings: string[];
+  disclaimer: string;
+};
+
+function createClientConcept(
+  generationId: string,
+  brief: string,
+  style: string,
+  mode: "plan" | "elevation" | "3d",
+): SketchConceptResult {
+  const input = brief.toLowerCase();
+  const bedroomMatch = input.match(/\b([1-6])\s*(?:bhk|bed|bedroom)/);
+  const bedroomCount = Number(bedroomMatch?.[1] || 2);
+  const extraRooms = [
+    input.includes("office") && "Home Office",
+    input.includes("courtyard") && "Courtyard",
+    input.includes("balcony") && "Balcony",
+    input.includes("parking") && "Parking",
+  ].filter((room): room is string => Boolean(room));
+  const roomNames = [
+    "Living Room",
+    "Kitchen",
+    ...Array.from({ length: bedroomCount }, (_, index) => `Bedroom ${index + 1}`),
+    ...extraRooms,
+  ];
+  const rooms = roomNames.map((name) => ({
+    name,
+    zone: name === "Living Room" ? "public" : name === "Kitchen" ? "service" : ["Courtyard", "Balcony", "Parking"].includes(name) ? "outdoor" : "private",
+    approximateSize: "Confirm from measured drawings",
+    adjacency: name === "Living Room" ? ["Kitchen", "Entry"] : ["Circulation spine"],
+    notes: `${name} is included as a conceptual zone based on your selected options.`,
+  }));
+  const disclaimer = "Concept preview only — final 3D design requires architect review.";
+
+  return {
+    generationId,
+    summary: `${style} ${bedroomCount}-bedroom ${mode === "3d" ? "3D direction" : mode} concept`,
+    detectedInput: "Generated on this device because live AI analysis was unavailable. Uploaded-image details may not be reflected.",
+    estimated_room_count: rooms.length,
+    rooms,
+    layout: {
+      orientation: "Confirm north direction and road-facing side.",
+      zoning: "Keep social spaces near the entry and bedrooms in a quieter private zone.",
+      circulation: "Use a short central circulation spine.",
+      daylightVentilation: "Provide shaded openings and cross ventilation where the site permits.",
+      entryStrategy: "Use a sheltered entrance with a privacy buffer.",
+      uncertainties: ["Plot dimensions, orientation, setbacks, and structure are unverified."],
+    },
+    elevation: {
+      style,
+      massing: "Use layered volumes with a clearly recessed entrance.",
+      materials: ["Textured plaster", "Local stone", "Powder-coated metal"],
+      openings: "Use shaded openings sized after orientation review.",
+      roof: "Flat parapet composition with concealed drainage.",
+      climateResponse: "Prioritize deep shading and heat-conscious west-facing treatment.",
+    },
+    threeDConcepts: [{
+      title: `${style} layered-volume direction`,
+      designIntent: "A practical, climate-responsive exterior concept.",
+      form: "Interlocking volumes around a recessed entry.",
+      materials: ["Textured plaster", "Stone accent", "Metal screens"],
+      landscape: roomNames.includes("Courtyard") ? "Use the courtyard as the green focal point." : "Add native planting near the entrance.",
+      limitations: "This is a written concept direction, not a rendered or measured 3D model.",
+    }],
+    recommendations: [
+      "Add plot dimensions, road direction, north direction, and floor count.",
+      "Have a local architect verify structure, services, setbacks, and ventilation.",
+    ],
+    layout_notes: ["Separate public and private circulation where possible."],
+    suggested_improvements: ["Align wet areas to simplify plumbing and maintenance."],
+    elevation_idea: `${style} facade with shaded openings and layered massing.`,
+    "3d_concept_description": `Develop a ${style.toLowerCase()} composition with interlocking volumes, a recessed entry, and climate-responsive shading.`,
+    warnings: ["Live visual AI analysis was unavailable.", "Do not use this concept as a construction drawing."],
+    disclaimer,
+  };
+}
+
 function Sketch3DBot() {
   const [stage, setStage] = useState<"upload" | "scanning" | "done">("upload");
   const [style, setStyle] = useState("Modern");
   const [view, setView] = useState<"plan" | "elevation" | "3d">("plan");
   const [image, setImage] = useState<string | null>(null);
-  const [apiResult, setApiResult] = useState<any>(null);
+  const [brief, setBrief] = useState("");
+  const [apiResult, setApiResult] = useState<SketchConceptResult | null>(null);
+  const [generationId, setGenerationId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const styles = ["Modern", "Traditional", "Vastu Classic", "Contemporary"];
-  const rooms = [
-    { label: "Living Room", w: 180, h: 140, x: 10, y: 10, color: "rgba(201,164,92,0.12)" },
-    { label: "Master Bed", w: 140, h: 130, x: 200, y: 10, color: "rgba(147,112,219,0.12)" },
-    { label: "Bed 2", w: 130, h: 120, x: 350, y: 10, color: "rgba(100,149,237,0.12)" },
-    { label: "Kitchen", w: 120, h: 100, x: 10, y: 160, color: "rgba(60,179,113,0.12)" },
-    { label: "Dining", w: 150, h: 100, x: 140, y: 160, color: "rgba(255,165,0,0.12)" },
-    { label: "Toilet 1", w: 80, h: 70, x: 300, y: 160, color: "rgba(255,105,180,0.12)" },
-    { label: "Toilet 2", w: 80, h: 70, x: 390, y: 160, color: "rgba(255,105,180,0.12)" },
-    { label: "Balcony", w: 480, h: 60, x: 10, y: 270, color: "rgba(201,164,92,0.07)" },
-  ];
 
-  const handleUpload = async () => {
-    if (!image) {
-      setErrorMsg("Please upload a sketch image first.");
+  const clearResult = () => {
+    setApiResult(null);
+    setGenerationId(null);
+    setErrorMsg(null);
+  };
+
+  const handleNewUpload = (base64: string) => {
+    clearResult();
+    setImage(base64);
+    setStage("upload");
+  };
+
+  const handleGenerate = async () => {
+    if (!image && !brief.trim()) {
+      setErrorMsg("Upload a sketch or describe the home concept you want.");
       return;
     }
+
+    const nextGenerationId =
+      globalThis.crypto?.randomUUID?.() ||
+      `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setGenerationId(nextGenerationId);
     setStage("scanning");
     setErrorMsg(null);
     setApiResult(null);
 
-    try {
-      const result = await requestAiBot<any>({
+    const payload = {
         botType: "sketch_3d",
-        prompt: `Analyze this ${style} home sketch and suggest a practical concept.`,
-        image,
+        prompt: brief.trim() || `Analyze this ${style} home sketch and create a practical concept.`,
+        image: image || undefined,
         style,
-      });
-      if (!result.data) throw new Error(AI_FALLBACK_REPLY);
+        mode: view,
+        generationId: nextGenerationId,
+      } as const;
+
+    try {
+      let result;
+      try {
+        result = await requestAiBot<SketchConceptResult>(payload);
+      } catch (firstError) {
+        if (!image) throw firstError;
+        result = await requestAiBot<SketchConceptResult>({
+          ...payload,
+          image: undefined,
+          prompt: `${payload.prompt} The uploaded image could not be transmitted, so provide a concept from this brief and selected options without claiming visual image analysis.`,
+        });
+      }
+      if (!result.data) throw new Error("Gemini returned no concept data.");
       setApiResult(result.data);
+      setGenerationId(result.data.generationId || nextGenerationId);
       setStage("done");
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : AI_FALLBACK_REPLY);
-      setStage("upload");
+      console.warn("Sketch concept request failed; using on-device concept.", err);
+      setApiResult(createClientConcept(nextGenerationId, brief.trim(), style, view));
+      setErrorMsg(null);
+      setStage("done");
     }
+  };
+
+  const reset = () => {
+    clearResult();
+    setImage(null);
+    setBrief("");
+    setStage("upload");
   };
 
   return (
@@ -393,174 +582,251 @@ function Sketch3DBot() {
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500/15 text-purple-400"><Camera className="h-5 w-5" /></div>
         <div>
           <h2 className="font-display text-2xl">Sketch → 3D Home Bot</h2>
-          <p className="text-sm text-skov-cream/60">Upload your rough sketch, floor plan, or blueprint. I will analyze the layout and suggest a practical 3D home concept.</p>
+          <p className="text-sm text-skov-cream/60">Upload a plan or describe your needs. Get a unique layout analysis with conceptual elevation and 3D directions. <span className="text-skov-gold/60">v2.1</span></p>
         </div>
       </div>
+
       {stage === "upload" && (
         <div className="space-y-4">
-          <UploadZone onUpload={(base64) => setImage(base64)} label="Drop your sketch, blueprint, or phone photo here" />
-          <div className="flex flex-wrap gap-2">
+          <UploadZone onUpload={(base64) => handleNewUpload(base64)} label="Drop your sketch, blueprint, or phone photo here" />
+          <div>
+            <label className="label-gold">Optional design brief</label>
+            <textarea
+              value={brief}
+              onChange={(event) => {
+                clearResult();
+                setBrief(event.target.value);
+              }}
+              rows={4}
+              className="input-dark"
+              placeholder="Example: 30x50 east-facing plot, three bedrooms, one home office, shaded front balcony, strong cross ventilation..."
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-skov-cream/50">Style:</span>
-            {styles.map((s) => (
-              <button key={s} onClick={() => setStyle(s)} className={`rounded-full border px-3 py-1 text-xs transition ${style === s ? "border-skov-gold bg-skov-gold/15 text-skov-gold" : "border-skov-gold/20 text-skov-cream/60 hover:border-skov-gold/50"}`}>{s}</button>
+            {styles.map((item) => (
+              <button
+                key={item}
+                onClick={() => {
+                  clearResult();
+                  setStyle(item);
+                }}
+                className={`rounded-full border px-3 py-1 text-xs transition ${style === item ? "border-skov-gold bg-skov-gold/15 text-skov-gold" : "border-skov-gold/20 text-skov-cream/60 hover:border-skov-gold/50"}`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-skov-cream/50">Primary output:</span>
+            {(["plan", "elevation", "3d"] as const).map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => {
+                  clearResult();
+                  setView(item);
+                }}
+                className={`rounded-full border px-3 py-1 text-xs transition ${view === item ? "border-purple-400 bg-purple-400/10 text-purple-300" : "border-skov-gold/20 text-skov-cream/60 hover:border-skov-gold/50"}`}
+              >
+                {item === "plan" ? "Floor Plan" : item === "elevation" ? "Elevation" : "3D View"}
+              </button>
             ))}
           </div>
           {errorMsg && (
-            <div className="text-sm text-red-400 font-medium text-center bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center text-sm font-medium text-red-400">
               {errorMsg}
             </div>
           )}
-          <button onClick={handleUpload} className="btn-gold w-full">Analyze & Generate Concept <Sparkles className="h-4 w-4" /></button>
+          <button onClick={handleGenerate} className="btn-gold w-full">
+            Generate Concept <Sparkles className="h-4 w-4" />
+          </button>
         </div>
       )}
+
       {stage === "scanning" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card-dark p-8 text-center space-y-4">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card-dark space-y-4 p-8 text-center">
           <div className="relative mx-auto h-16 w-16">
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 rounded-full border-2 border-skov-gold/30 border-t-skov-gold" />
             <div className="absolute inset-2 flex items-center justify-center"><Camera className="h-6 w-6 text-skov-gold" /></div>
           </div>
-          <p className="text-skov-gold font-medium">Analysing your sketch with Gemini Vision...</p>
+          <p className="font-medium text-skov-gold">Generating a fresh {view === "plan" ? "floor plan" : view === "3d" ? "3D direction" : "elevation"} concept with Gemini...</p>
           <div className="space-y-2 text-sm text-skov-cream/60">
-            {["Detecting walls & openings", "Identifying room zones", "Checking circulation & ventilation", "Generating floor plan concept"].map((s, i) => (
-              <motion.p key={s} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.6 }}
-                className="flex items-center justify-center gap-2">
-                <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: i * 0.3 }}>⬡</motion.span> {s}
+            {["Reading the supplied sketch or brief", "Identifying room relationships", "Developing elevation language", "Preparing distinct conceptual massing options"].map((item, index) => (
+              <motion.p key={item} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.6 }}>
+                {item}
               </motion.p>
             ))}
           </div>
         </motion.div>
       )}
-      {stage === "done" && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+
+      {stage === "done" && apiResult && (
+        <motion.div
+          key={generationId}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
           <div className="flex flex-wrap gap-2">
-            {(["plan", "elevation", "3d"] as const).map((v) => (
-              <button key={v} onClick={() => setView(v)} className={`rounded-full border px-4 py-1.5 text-sm capitalize transition ${view === v ? "border-skov-gold bg-skov-gold/15 text-skov-gold" : "border-skov-gold/20 text-skov-cream/60 hover:border-skov-gold/40"}`}>{v === "3d" ? "3D View" : v === "plan" ? "Floor Plan" : "Elevation"}</button>
+            {(["plan", "elevation", "3d"] as const).map((item) => (
+              <button
+                key={item}
+                onClick={() => setView(item)}
+                className={`rounded-full border px-4 py-1.5 text-sm transition ${view === item ? "border-skov-gold bg-skov-gold/15 text-skov-gold" : "border-skov-gold/20 text-skov-cream/60 hover:border-skov-gold/40"}`}
+              >
+                {item === "3d" ? "3D Concepts" : item === "plan" ? "Room & Layout" : "Elevation"}
+              </button>
             ))}
-            <button onClick={() => { setStage("upload"); setImage(null); setApiResult(null); }} className="ml-auto flex items-center gap-1 rounded-full border border-skov-gold/20 px-3 py-1.5 text-xs text-skov-cream/60 hover:border-skov-gold/40"><RotateCcw className="h-3 w-3" /> New Upload</button>
-          </div>
-          <div className="card-dark overflow-hidden p-4">
-            <p className="mb-3 text-xs text-skov-gold">✦ {style} Style — CONCEPT ONLY — AI-Generated {view === "plan" ? "Floor Plan" : view === "elevation" ? "Elevation" : "3D View"}</p>
-            {view === "plan" && (
-              <svg viewBox="0 0 490 340" className="w-full rounded-xl bg-skov-black/60" style={{ maxHeight: 300 }}>
-                <rect width="490" height="340" fill="#0B0B0B" />
-                <rect x="8" y="8" width="474" height="324" fill="none" stroke="rgba(201,164,92,0.7)" strokeWidth="3" />
-                {rooms.map((r) => (
-                  <g key={r.label}>
-                    <rect x={r.x + 12} y={r.y + 12} width={r.w} height={r.h} fill={r.color} stroke="rgba(201,164,92,0.5)" strokeWidth="1.5" rx="2" />
-                    <text x={r.x + 12 + r.w / 2} y={r.y + 12 + r.h / 2} textAnchor="middle" dominantBaseline="middle" fill="rgba(248,243,234,0.75)" fontSize="9" fontFamily="Inter, sans-serif">{r.label}</text>
-                  </g>
-                ))}
-                <path d="M 22 150 Q 52 150 52 120" fill="none" stroke="rgba(201,164,92,0.6)" strokeWidth="1" />
-                <path d="M 200 150 Q 200 120 230 120" fill="none" stroke="rgba(201,164,92,0.6)" strokeWidth="1" />
-                <text x="460" y="18" fill="rgba(201,164,92,0.8)" fontSize="10" fontFamily="Inter" textAnchor="middle">N↑</text>
-              </svg>
-            )}
-            {view === "elevation" && (
-              <svg viewBox="0 0 490 200" className="w-full rounded-xl bg-skov-black/60" style={{ maxHeight: 200 }}>
-                <rect width="490" height="200" fill="#0B0B0B" />
-                <rect x="0" y="180" width="490" height="20" fill="rgba(201,164,92,0.1)" />
-                <rect x="40" y="40" width="410" height="140" fill="rgba(201,164,92,0.06)" stroke="rgba(201,164,92,0.5)" strokeWidth="2" />
-                {[80, 180, 280, 360].map((x) => (
-                  <rect key={x} x={x} y="70" width="55" height="45" fill="rgba(100,149,237,0.2)" stroke="rgba(201,164,92,0.6)" strokeWidth="1.5" rx="2" />
-                ))}
-                <rect x="205" y="130" width="80" height="50" fill="rgba(201,164,92,0.15)" stroke="rgba(201,164,92,0.6)" strokeWidth="2" rx="3" />
-                <polygon points="20,40 245,5 470,40" fill="none" stroke="rgba(201,164,92,0.5)" strokeWidth="2" />
-                <text x="245" y="195" textAnchor="middle" fill="rgba(248,243,234,0.4)" fontSize="9" fontFamily="Inter">{style} Elevation — CONCEPT ONLY</text>
-              </svg>
-            )}
-            {view === "3d" && (
-              <svg viewBox="0 0 490 280" className="w-full rounded-xl bg-skov-black/60" style={{ maxHeight: 280 }}>
-                <rect width="490" height="280" fill="#0B0B0B" />
-                <polygon points="80,240 80,100 280,100 280,240" fill="rgba(201,164,92,0.08)" stroke="rgba(201,164,92,0.6)" strokeWidth="2" />
-                <polygon points="280,100 280,240 420,180 420,40" fill="rgba(201,164,92,0.05)" stroke="rgba(201,164,92,0.5)" strokeWidth="1.5" />
-                <polygon points="80,100 280,100 420,40 220,40" fill="rgba(201,164,92,0.12)" stroke="rgba(201,164,92,0.7)" strokeWidth="2" />
-                <polygon points="80,100 280,100 350,50 155,50" fill="rgba(201,164,92,0.18)" stroke="rgba(201,164,92,0.8)" strokeWidth="1.5" />
-                <rect x="100" y="130" width="60" height="50" fill="rgba(100,149,237,0.25)" stroke="rgba(201,164,92,0.6)" strokeWidth="1" rx="2" />
-                <rect x="190" y="130" width="60" height="50" fill="rgba(100,149,237,0.25)" stroke="rgba(201,164,92,0.6)" strokeWidth="1" rx="2" />
-                <rect x="145" y="180" width="50" height="60" fill="rgba(201,164,92,0.2)" stroke="rgba(201,164,92,0.6)" strokeWidth="1.5" />
-                <rect x="300" y="100" width="70" height="50" fill="rgba(100,149,237,0.2)" stroke="rgba(201,164,92,0.5)" strokeWidth="1" rx="2" />
-                <ellipse cx="250" cy="250" rx="210" ry="18" fill="rgba(201,164,92,0.06)" />
-                <text x="245" y="270" textAnchor="middle" fill="rgba(248,243,234,0.4)" fontSize="9" fontFamily="Inter">{style} — CONCEPT ONLY — AI Draft</text>
-              </svg>
-            )}
+            <button onClick={reset} className="ml-auto flex items-center gap-1 rounded-full border border-skov-gold/20 px-3 py-1.5 text-xs text-skov-cream/60 hover:border-skov-gold/40">
+              <RotateCcw className="h-3 w-3" /> New Input
+            </button>
+            <button onClick={handleGenerate} className="flex items-center gap-1 rounded-full border border-skov-gold/40 bg-skov-gold/10 px-3 py-1.5 text-xs text-skov-gold hover:bg-skov-gold/20">
+              <RefreshCw className="h-3 w-3" /> Generate Again
+            </button>
           </div>
 
-          {/* Analysis table */}
-          {apiResult?.layoutAnalysis && (
-            <div className="card-dark p-4 space-y-2">
-              <p className="text-sm font-medium text-skov-gold">Layout Analysis</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-skov-gold/15">
-                      <th className="text-left py-1.5 text-skov-cream/60">Area</th>
-                      <th className="text-left py-1.5 text-skov-cream/60">Observation</th>
-                      <th className="text-left py-1.5 text-skov-cream/60">Improvement</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {apiResult.layoutAnalysis.map((item: any, idx: number) => (
-                      <tr key={idx} className="border-b border-skov-gold/10">
-                        <td className="py-2 text-skov-cream/70 font-semibold">{item.area}</td>
-                        <td className="py-2 text-skov-cream/60">{item.observation}</td>
-                        <td className="py-2 text-skov-gold/80">{item.improvement}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <div className="card-dark p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs uppercase tracking-wider text-skov-gold">{style} concept · {apiResult.estimated_room_count || apiResult.rooms.length} rooms</p>
+              <span className="rounded-full border border-skov-gold/20 px-2.5 py-1 text-[10px] text-skov-cream/50">Gemini-generated</span>
+            </div>
+            <h3 className="mt-3 font-display text-xl">{apiResult.summary}</h3>
+            <p className="mt-2 text-xs leading-relaxed text-skov-cream/60">{apiResult.detectedInput}</p>
+          </div>
+
+          {view === "plan" && (
+            <div className="space-y-4">
+              <div className="card-dark p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-skov-gold">Dynamic conceptual layout</p>
+                    <p className="mt-1 text-[10px] text-skov-cream/45">Relative zones only; proportions are not construction dimensions.</p>
+                  </div>
+                  <LayoutDashboard className="h-5 w-5 text-skov-gold/60" />
+                </div>
+                <div className="grid auto-rows-[92px] grid-cols-2 gap-2 sm:grid-cols-3">
+                  {apiResult.rooms.map((room, index) => (
+                    <div
+                      key={`layout-${room.name}-${index}`}
+                      className={`flex flex-col justify-between rounded-xl border border-skov-gold/25 bg-skov-gold/[0.04] p-3 ${
+                        index % 5 === 0 && apiResult.rooms.length > 3 ? "sm:col-span-2" : ""
+                      }`}
+                    >
+                      <span className="text-sm font-medium text-skov-cream">{room.name}</span>
+                      <span className="text-[10px] uppercase tracking-wide text-skov-gold/70">{room.zone}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Room & Wall Understanding */}
-          {apiResult?.roomWallUnderstanding && (
-            <div className="card-dark p-4 space-y-2">
-              <p className="text-sm font-medium text-skov-gold">Room & Wall Understanding</p>
-              <p className="text-xs text-skov-cream/80 leading-relaxed whitespace-pre-line">{apiResult.roomWallUnderstanding}</p>
-            </div>
-          )}
-
-          {/* Design Concept Notes */}
-          {apiResult?.designConceptNotes && (
-            <div className="card-dark p-4 space-y-2">
-              <p className="text-sm font-medium text-skov-gold">Design Concept Notes</p>
-              <p className="text-xs text-skov-cream/80 leading-relaxed whitespace-pre-line">{apiResult.designConceptNotes}</p>
-            </div>
-          )}
-
-          {/* Sizing & Cost cards */}
-          <div className="grid gap-3 sm:grid-cols-2 text-sm">
-            <div className="card-dark p-3">
-              <div className="text-xs text-skov-cream/50">Est. Built-up Area</div>
-              <div className="font-semibold text-skov-gold mt-1">{apiResult?.estimatedBuiltUpArea || "N/A"}</div>
-            </div>
-            <div className="card-dark p-3">
-              <div className="text-xs text-skov-cream/50">Rough Cost Range</div>
-              <div className="font-semibold text-skov-gold mt-1">{apiResult?.roughCostRange || "N/A"}</div>
-            </div>
-          </div>
-
-          {/* Concept Directions */}
-          {apiResult?.conceptDirections && (
-            <div className="card-dark p-4 space-y-4">
-              <p className="text-sm font-medium text-skov-gold">3 Unique 3D Concept Directions</p>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {apiResult.conceptDirections.map((dir: any, idx: number) => (
-                  <div key={idx} className="border border-skov-gold/15 bg-white/[0.01] rounded-xl p-3.5 space-y-2">
-                    <h4 className="text-sm font-bold text-skov-cream">{dir.name}</h4>
-                    <p className="text-[11px] text-skov-cream/60 leading-relaxed">{dir.desc}</p>
-                    <div className="text-[10px] text-skov-gold italic font-medium">{dir.vastuCompatibility}</div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {apiResult.rooms.map((room, index) => (
+                  <div key={`${room.name}-${index}`} className="card-dark p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <h4 className="font-display text-lg">{room.name}</h4>
+                      <span className="rounded-full bg-skov-gold/10 px-2 py-1 text-[10px] uppercase text-skov-gold">{room.zone}</span>
+                    </div>
+                    <p className="mt-2 text-xs font-medium text-skov-gold">{room.approximateSize}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-skov-cream/60">{room.notes}</p>
+                    {room.adjacency.length > 0 && (
+                      <p className="mt-3 text-[10px] text-skov-cream/45">Connects with: {room.adjacency.join(", ")}</p>
+                    )}
                   </div>
                 ))}
               </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  ["Orientation", apiResult.layout.orientation],
+                  ["Zoning", apiResult.layout.zoning],
+                  ["Circulation", apiResult.layout.circulation],
+                  ["Daylight & ventilation", apiResult.layout.daylightVentilation],
+                  ["Entry strategy", apiResult.layout.entryStrategy],
+                ].map(([label, value]) => (
+                  <div key={label} className="card-dark p-4">
+                    <p className="text-xs font-medium text-skov-gold">{label}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-skov-cream/70">{value}</p>
+                  </div>
+                ))}
+              </div>
+              {apiResult.layout.uncertainties.length > 0 && (
+                <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4">
+                  <p className="text-xs font-medium text-amber-300">Input uncertainties</p>
+                  <ul className="mt-2 space-y-1 text-xs text-skov-cream/60">
+                    {apiResult.layout.uncertainties.map((item) => <li key={item}>• {item}</li>)}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
-          <div className="text-xs text-skov-cream/40 flex items-start gap-1.5">
-            <AlertCircle className="h-3 w-3 flex-shrink-0 mt-0.5 text-skov-gold/60" />
-            <span>This is an AI-generated concept direction based on image analysis, not a final structural or architectural blueprint. Consult a qualified structural engineer for executing drawings.</span>
+          {view === "elevation" && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {[
+                ["Architectural style", apiResult.elevation.style],
+                ["Massing strategy", apiResult.elevation.massing],
+                ["Openings", apiResult.elevation.openings],
+                ["Roof direction", apiResult.elevation.roof],
+                ["Climate response", apiResult.elevation.climateResponse],
+              ].map(([label, value]) => (
+                <div key={label} className="card-dark p-5">
+                  <p className="text-xs uppercase tracking-wider text-skov-gold">{label}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-skov-cream/70">{value}</p>
+                </div>
+              ))}
+              <div className="card-dark p-5">
+                <p className="text-xs uppercase tracking-wider text-skov-gold">Suggested material language</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {apiResult.elevation.materials.map((material) => (
+                    <span key={material} className="rounded-full border border-skov-gold/20 px-3 py-1 text-xs text-skov-cream/70">{material}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {view === "3d" && (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-purple-400/20 bg-purple-400/5 p-4 text-sm leading-relaxed text-skov-cream/75">
+                {apiResult["3d_concept_description"]}
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {apiResult.threeDConcepts.map((concept, index) => (
+                <div key={`${concept.title}-${index}`} className="card-dark flex flex-col p-5">
+                  <div className="flex items-center gap-2 text-skov-gold">
+                    <Building className="h-4 w-4" />
+                    <span className="text-[10px] uppercase tracking-wider">Concept {index + 1}</span>
+                  </div>
+                  <h4 className="mt-3 font-display text-xl">{concept.title}</h4>
+                  <p className="mt-2 text-xs leading-relaxed text-skov-cream/70">{concept.designIntent}</p>
+                  <div className="mt-4 space-y-3 text-xs">
+                    <div><span className="text-skov-gold">Form:</span> <span className="text-skov-cream/60">{concept.form}</span></div>
+                    <div><span className="text-skov-gold">Landscape:</span> <span className="text-skov-cream/60">{concept.landscape}</span></div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {concept.materials.map((material) => (
+                      <span key={material} className="rounded-full bg-white/[0.04] px-2 py-1 text-[10px] text-skov-cream/55">{material}</span>
+                    ))}
+                  </div>
+                  <p className="mt-5 border-t border-skov-gold/10 pt-3 text-[10px] leading-relaxed text-skov-cream/40">{concept.limitations}</p>
+                </div>
+              ))}
+              </div>
+            </div>
+          )}
+
+          {apiResult.recommendations.length > 0 && (
+            <div className="card-dark p-4">
+              <p className="text-sm font-medium text-skov-gold">Recommended next steps</p>
+              <ul className="mt-3 grid gap-2 text-xs text-skov-cream/70 sm:grid-cols-2">
+                {apiResult.recommendations.map((item) => <li key={item}>• {item}</li>)}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex items-start gap-1.5 text-xs text-skov-cream/40">
+            <AlertCircle className="mt-0.5 h-3 w-3 flex-shrink-0 text-skov-gold/60" />
+            <span>Concept preview only — final 3D design requires architect review.</span>
           </div>
-          <BotCTA label="Upload another sketch" icon={Upload} />
         </motion.div>
       )}
     </div>

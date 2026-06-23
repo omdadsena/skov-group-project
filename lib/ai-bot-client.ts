@@ -7,6 +7,8 @@ export type AiBotPayload = {
   messages?: Array<{ role: string; text: string }>;
   image?: string;
   style?: string;
+  mode?: "plan" | "elevation" | "3d";
+  generationId?: string;
 };
 
 export type AiBotResult<T = unknown> = {
@@ -19,12 +21,16 @@ export async function requestAiBot<T = unknown>(payload: AiBotPayload): Promise<
   const response = await fetch("/api/ai-bot", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
   const body = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(body?.error || AI_FALLBACK_REPLY);
+    if (response.status === 413) {
+      throw new Error("The uploaded image is too large. It will be retried using the written brief.");
+    }
+    throw new Error(body?.error || `Concept request failed (${response.status}). Please try again.`);
   }
 
   const text =

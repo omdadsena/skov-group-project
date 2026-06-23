@@ -37,6 +37,8 @@ type AiBotRequest = {
   messages?: Array<{ role?: string; text?: string }>;
   image?: string;
   style?: string;
+  mode?: "plan" | "elevation" | "3d";
+  generationId?: string;
 };
 
 type GeminiResponse = {
@@ -77,27 +79,112 @@ function parseJsonText(text: string) {
   return JSON.parse(cleaned);
 }
 
-function sketchFallback() {
+function createSketchFallback({
+  generationId,
+  prompt,
+  style,
+  mode,
+  hasImage,
+}: {
+  generationId: string;
+  prompt: string;
+  style: string;
+  mode: "plan" | "elevation" | "3d";
+  hasImage: boolean;
+}) {
+  const lower = prompt.toLowerCase();
+  const seed = [...generationId].reduce((total, character) => total + character.charCodeAt(0), 0);
+  const numberMatch = lower.match(/\b([1-6])\s*(?:bed|bedroom|bhk)/);
+  const wordNumbers: Record<string, number> = {
+    one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+  };
+  const wordMatch = Object.entries(wordNumbers).find(([word]) =>
+    new RegExp(`\\b${word}\\s*(?:bed|bedroom)`).test(lower),
+  );
+  const bedroomCount = Number(numberMatch?.[1] || wordMatch?.[1] || (2 + (seed % 2)));
+  const requestedRooms = [
+    lower.includes("office") && "Home Office",
+    lower.includes("courtyard") && "Courtyard",
+    lower.includes("balcony") && "Balcony",
+    lower.includes("puja") && "Puja Room",
+    lower.includes("parking") && "Parking",
+    lower.includes("dining") && "Dining",
+  ].filter((room): room is string => Boolean(room));
+  const zones = ["public", "service", ...Array.from({ length: bedroomCount }, () => "private")];
+  const names = [
+    "Living Room",
+    "Kitchen",
+    ...Array.from({ length: bedroomCount }, (_, index) => `Bedroom ${index + 1}`),
+    ...requestedRooms,
+  ];
+  const rooms = names.map((name, index) => ({
+    name,
+    zone: zones[index] || (["Courtyard", "Balcony", "Parking"].includes(name) ? "outdoor" : "private"),
+    approximateSize: "To be confirmed from measured drawings",
+    adjacency:
+      name === "Living Room" ? ["Kitchen", names.includes("Dining") ? "Dining" : "Entry"] :
+      name === "Kitchen" ? ["Living Room", names.includes("Dining") ? "Dining" : "Service area"] :
+      ["Circulation spine"],
+    notes: `${name} is positioned as a ${index % 2 === seed % 2 ? "daylight-focused" : "privacy-focused"} zone in this concept.`,
+  }));
+  const rotation = seed % 3;
+  const layoutNotes = [
+    rotation === 0
+      ? "Use a compact central circulation spine to reduce corridor waste."
+      : rotation === 1
+        ? "Group private rooms along one edge and keep social areas near the entrance."
+        : "Use a staggered room arrangement to improve daylight and cross ventilation.",
+    "Confirm plot orientation, setbacks, columns, plumbing shafts, and exact dimensions with an architect.",
+  ];
+  const disclaimer = "Concept preview only — final 3D design requires architect review.";
+
   return {
-    layoutAnalysis: [
+    generationId,
+    summary: `${style} ${bedroomCount}-bedroom ${mode === "3d" ? "massing direction" : mode} concept`,
+    detectedInput: hasImage
+      ? "An image was uploaded, but live visual AI analysis was temporarily unavailable. This fallback uses the written brief and selected options only."
+      : "Concept inferred from the written brief and selected options.",
+    estimated_room_count: rooms.length,
+    rooms,
+    layout: {
+      orientation: "Confirm north direction and road-facing side before design development.",
+      zoning: layoutNotes[0],
+      circulation: rotation === 2 ? "Staggered circulation with short connectors." : "Short central circulation spine.",
+      daylightVentilation: "Keep opposite or adjacent openings where site conditions permit.",
+      entryStrategy: rotation === 0 ? "Direct entry into a sheltered living foyer." : "Recessed entry with a privacy buffer.",
+      uncertainties: ["Image details were not analyzed by Gemini.", "Dimensions and structural constraints are unverified."],
+    },
+    elevation: {
+      style,
+      massing: rotation === 0 ? "Two clean interlocking volumes." : rotation === 1 ? "Layered facade with a shaded central bay." : "Asymmetric volumes with a recessed entrance.",
+      materials: rotation === 2 ? ["Textured plaster", "Stone accent", "Metal screens"] : ["Light plaster", "Warm wood-look accents", "Local stone"],
+      openings: "Use shaded windows sized after room orientation and privacy review.",
+      roof: rotation === 1 ? "Flat roof with a lightweight entrance canopy." : "Flat parapet composition with concealed drainage.",
+      climateResponse: "Prioritize deep shading, ventilated openings, and heat-conscious west-facing treatment.",
+    },
+    threeDConcepts: [
       {
-        area: "Uploaded plan",
-        observation: "The AI image review is temporarily unavailable.",
-        improvement: "Please retry with a clear, straight, well-lit image showing dimensions.",
+        title: `${style} layered-volume direction`,
+        designIntent: `A ${rotation === 0 ? "calm and balanced" : "bold and shaded"} exterior expression based on the selected style.`,
+        form: rotation === 2 ? "Staggered boxes around a recessed entry." : "Interlocking horizontal volumes.",
+        materials: ["Textured plaster", "Stone or tile accent", "Powder-coated metal"],
+        landscape: names.includes("Courtyard") ? "Use the requested courtyard as the primary green focal point." : "Add a shaded entrance planter and low-maintenance native planting.",
+        limitations: "This is a written design direction, not a rendered or measured 3D model.",
       },
     ],
-    roomWallUnderstanding: FALLBACK_REPLY,
-    designConceptNotes:
-      "Keep room names, dimensions, doors, windows, north direction, and plot boundaries visible. A qualified architect must prepare final drawings.",
-    estimatedBuiltUpArea: "Requires readable dimensions",
-    roughCostRange: "Use the SKOV cost estimator after confirming area",
-    conceptDirections: [
-      {
-        name: "Practical concept",
-        desc: "Prioritize circulation, daylight, ventilation, and a simple structural grid.",
-        vastuCompatibility: "Review orientation with the final site plan.",
-      },
+    recommendations: [
+      "Add plot dimensions, road direction, north direction, and floor count for a stronger next concept.",
+      "Have a local architect verify setbacks, structure, ventilation, and service routing.",
     ],
+    layout_notes: layoutNotes,
+    suggested_improvements: [
+      "Separate public and bedroom circulation where the plot allows.",
+      "Align wet areas to simplify plumbing and maintenance.",
+    ],
+    elevation_idea: `${style} facade with shaded openings and ${rotation === 1 ? "layered" : "interlocking"} massing.`,
+    "3d_concept_description": `Develop a ${style.toLowerCase()} composition using ${rotation === 2 ? "staggered" : "interlocking"} volumes, a clearly recessed entry, climate-responsive shading, and a restrained material palette.`,
+    warnings: ["Gemini visual analysis was unavailable for this request.", "Do not use this concept as a construction drawing."],
+    disclaimer,
   };
 }
 
@@ -198,31 +285,103 @@ export async function POST(request: Request) {
   }
 
   const isSketch = botType === "sketch_3d";
+  const generationId =
+    typeof body.generationId === "string" && body.generationId.trim()
+      ? body.generationId.trim().slice(0, 100)
+      : crypto.randomUUID();
   const apiKey = process.env.GEMINI_API_KEY?.trim();
+  const noStoreHeaders = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+    Pragma: "no-cache",
+  };
 
   if (!apiKey) {
     console.error("AI bot configuration error: GEMINI_API_KEY is missing.");
-    const data = isSketch ? sketchFallback() : undefined;
+    if (isSketch) {
+      const data = createSketchFallback({
+        generationId,
+        prompt,
+        style: body.style || "Modern",
+        mode: body.mode || "plan",
+        hasImage: Boolean(image),
+      });
+      return NextResponse.json(
+        {
+          ok: true,
+          fallback: true,
+          generationId,
+          text: data.summary,
+          response: data.summary,
+          data,
+        },
+        { headers: noStoreHeaders },
+      );
+    }
     return NextResponse.json({
       ok: false,
       fallback: true,
       text: FALLBACK_REPLY,
       response: FALLBACK_REPLY,
-      ...(data ? { data } : {}),
-    });
+    }, { headers: noStoreHeaders });
   }
 
-  const sketchPrompt = `Analyze this uploaded floor-plan or home sketch in a ${body.style || "Modern"} style.
+  const sketchPrompt = `Generation request ID / random seed: ${generationId}.
+Analyze ${image ? "the uploaded floor-plan, blueprint, or home sketch" : "the user's written home brief"} and create a distinct ${body.style || "Modern"} concept response.
+Primary requested mode: ${body.mode || "plan"}.
+User brief: ${prompt || "No additional written brief supplied."}
+
+This is conceptual architectural guidance only. Do not claim to generate an exact 3D model, construction drawing, structural design, or measured survey.
+Do not reuse a generic fixed room list. Base rooms and recommendations only on visible or stated information. Clearly list uncertainty when the input is unclear.
 Return valid JSON only with this exact shape:
 {
-  "layoutAnalysis": [{"area":"string","observation":"string","improvement":"string"}],
-  "roomWallUnderstanding":"string",
-  "designConceptNotes":"string",
-  "estimatedBuiltUpArea":"string",
-  "roughCostRange":"string",
-  "conceptDirections":[{"name":"string","desc":"string","vastuCompatibility":"string"}]
+  "generationId": "${generationId}",
+  "summary": "string",
+  "detectedInput": "string",
+  "estimated_room_count": 0,
+  "rooms": [
+    {
+      "name": "string",
+      "zone": "public|private|service|outdoor|unclear",
+      "approximateSize": "string",
+      "adjacency": ["string"],
+      "notes": "string"
+    }
+  ],
+  "layout": {
+    "orientation": "string",
+    "zoning": "string",
+    "circulation": "string",
+    "daylightVentilation": "string",
+    "entryStrategy": "string",
+    "uncertainties": ["string"]
+  },
+  "elevation": {
+    "style": "string",
+    "massing": "string",
+    "materials": ["string"],
+    "openings": "string",
+    "roof": "string",
+    "climateResponse": "string"
+  },
+  "threeDConcepts": [
+    {
+      "title": "string",
+      "designIntent": "string",
+      "form": "string",
+      "materials": ["string"],
+      "landscape": "string",
+      "limitations": "string"
+    }
+  ],
+  "recommendations": ["string"],
+  "layout_notes": ["string"],
+  "suggested_improvements": ["string"],
+  "elevation_idea": "string",
+  "3d_concept_description": "string",
+  "warnings": ["string"],
+  "disclaimer": "Concept preview only — final 3D design requires architect review."
 }
-Use cautious language. If dimensions are unreadable, say so instead of inventing them.`;
+Return 2 to 4 genuinely different threeDConcepts. If dimensions are unreadable or absent, use "Not reliably determined" instead of inventing measurements.`;
 
   try {
     const result = await callGemini({
@@ -235,7 +394,45 @@ Use cautious language. If dimensions are unreadable, say so instead of inventing
 
     if (isSketch) {
       const data = parseJsonText(result.text);
-      return NextResponse.json({ ok: true, fallback: false, text: result.text, response: result.text, data });
+      if (
+        !data ||
+        !Array.isArray(data.rooms) ||
+        !data.layout ||
+        !data.elevation ||
+        !Array.isArray(data.threeDConcepts)
+      ) {
+        throw new Error("Gemini returned an incomplete concept response.");
+      }
+      data.generationId = generationId;
+      data.estimated_room_count =
+        typeof data.estimated_room_count === "number" ? data.estimated_room_count : data.rooms.length;
+      data.layout_notes = Array.isArray(data.layout_notes)
+        ? data.layout_notes
+        : [
+            data.layout.orientation,
+            data.layout.zoning,
+            data.layout.circulation,
+            data.layout.daylightVentilation,
+          ].filter(Boolean);
+      data.suggested_improvements = Array.isArray(data.suggested_improvements)
+        ? data.suggested_improvements
+        : Array.isArray(data.recommendations) ? data.recommendations : [];
+      data.elevation_idea =
+        typeof data.elevation_idea === "string"
+          ? data.elevation_idea
+          : [data.elevation.style, data.elevation.massing].filter(Boolean).join(": ");
+      data["3d_concept_description"] =
+        typeof data["3d_concept_description"] === "string"
+          ? data["3d_concept_description"]
+          : data.threeDConcepts[0]?.designIntent || "Concept direction requires architect review.";
+      data.warnings = Array.isArray(data.warnings)
+        ? data.warnings
+        : Array.isArray(data.layout.uncertainties) ? data.layout.uncertainties : [];
+      data.disclaimer = "Concept preview only — final 3D design requires architect review.";
+      return NextResponse.json(
+        { ok: true, fallback: false, generationId, text: result.text, response: result.text, data },
+        { headers: noStoreHeaders },
+      );
     }
 
     return NextResponse.json({
@@ -243,16 +440,34 @@ Use cautious language. If dimensions are unreadable, say so instead of inventing
       fallback: false,
       text: result.text,
       response: result.text,
-    });
+    }, { headers: noStoreHeaders });
   } catch (error) {
     console.error("Gemini AI bot request failed:", error instanceof Error ? error.message : error);
-    const data = isSketch ? sketchFallback() : undefined;
+    if (isSketch) {
+      const data = createSketchFallback({
+        generationId,
+        prompt,
+        style: body.style || "Modern",
+        mode: body.mode || "plan",
+        hasImage: Boolean(image),
+      });
+      return NextResponse.json(
+        {
+          ok: true,
+          fallback: true,
+          generationId,
+          text: data.summary,
+          response: data.summary,
+          data,
+        },
+        { headers: noStoreHeaders },
+      );
+    }
     return NextResponse.json({
       ok: false,
       fallback: true,
       text: FALLBACK_REPLY,
       response: FALLBACK_REPLY,
-      ...(data ? { data } : {}),
-    });
+    }, { headers: noStoreHeaders });
   }
 }
